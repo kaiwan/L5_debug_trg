@@ -16,7 +16,7 @@
 #include <linux/module.h>
 #include <linux/kprobes.h>
 #include <linux/interrupt.h>
-#include "convenient.h"
+#include "../convenient.h"
 
 #define MYNAME "jprobe_eg"
 /*
@@ -28,12 +28,7 @@
 /* Proxy routine having the same arguments as actual do_sys_open() routine */
 static long jp_do_sys_open(int dfd, const char __user *filename, int flags, int mode)
 {
-	printk (KERN_INFO "%s:%s:filename: %s", MYNAME, __func__, filename);
-	if (!in_interrupt())
-		printk (KERN_INFO " [%s]\n", current->comm);
-	else
-		printk (KERN_INFO "\n");
-
+	PRINT_CTX();
 	//DELAY_SEC(5);
 	/* Always end with a call to jprobe_return(). */
 	jprobe_return();
@@ -45,6 +40,7 @@ static long jp_do_fork(unsigned long clone_flags, unsigned long stack_start,
 	      struct pt_regs *regs, unsigned long stack_size,
 	      int __user *parent_tidptr, int __user *child_tidptr)
 {
+	PRINT_CTX();
 	printk(KERN_INFO "%s:%s:clone_flags = 0x%lx, stack_size = 0x%lx [%s]\n",
 	       MYNAME, __func__, clone_flags, stack_size, current->comm);
 
@@ -58,13 +54,8 @@ static int jp_do_execve(char * filename,
      char __user *__user *envp,
      struct pt_regs * regs)
 {
+	PRINT_CTX();
 	printk(KERN_INFO "%s:%s:predecessor -> successor: %s -> %s\n", MYNAME, __func__, current->comm, filename);
-/*
-	if (!in_interrupt())
-		printk (KERN_INFO " [%s]\n", current->comm);
-	else
-		printk (KERN_INFO "\n");
-*/
 
 	/* Always end with a call to jprobe_return(). */
 	jprobe_return();

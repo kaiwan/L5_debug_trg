@@ -1,5 +1,5 @@
 #!/bin/bash
-USE_FTRACE_PR=1
+USE_FTRACE_PR=0
 NUM=30
 DELAY=3
 

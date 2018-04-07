@@ -48,7 +48,7 @@
      trace_printk(string, ##args);
 #else
 #define DBGPRINT(string, args...) do {                             \
-     int USE_RATELIMITING=0;                                       \
+     int USE_RATELIMITING=1;                                       \
 	 if (USE_RATELIMITING) {                                   \
 	   printk_ratelimited (KERN_INFO pr_fmt(string), ##args);  \
 	 }                                                         \

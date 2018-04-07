@@ -1,8 +1,11 @@
 # linux_debug_L5
-Source code, small utils : for the kaiwanTECH 'Linux Debugging Techniques' corporate training sessions
+Source code, small utils : for the kaiwanTECH 'Linux Debugging Techniques' corporate
+training sessions.
+
 -----------------------------------------------------------
 A NOTE to participants of the training course(s) follows:
 -----------------------------------------------------------
+
 Dear Participant,
 
 ******************************* PLEASE NOTE CAREFULLY ***********************************
@@ -43,7 +46,4 @@ Kaiwan.
 < kaiwan -at- kaiwantech -dot- com >
 (c) kaiwanTECH
 
-
 COURSES: http://bit.ly/ktcorp
-
-===============================================================================

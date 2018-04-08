@@ -9,5 +9,5 @@ sudo grep -w register_jprobe /boot/System.map-$(uname -r) || {
 }
 sudo rmmod ${KMOD}
 sudo dmesg -C
-sudo make && sudo insmod ${KMOD}
+sudo make clean ; sudo make && sudo insmod ${KMOD}.ko
 dmesg

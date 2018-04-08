@@ -13,11 +13,11 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
-#include <linux/interrupt.h>
 #include <linux/kprobes.h>
+#include "../convenient.h"
 
 #define MODULE_VER 		"0.1"
-#define MODULE_NAME    		"helper_jkret"
+#define MODULE_NAME    	"helper_jkret"
 
 static char * funcname;
 
@@ -43,18 +43,7 @@ static void * handler_pre(size_t sz, gfp_t flags)  /***************************
 	any other function. Current: __kmalloc() . 
 	******************************************************************/
 {
-	char intr='.';
-
-	if (printk_ratelimit()) {
-		//printk (KERN_INFO "pre_handler: process %s:%d kmalloc'ing %d bytes. [IntrCtx? %c]\n",
-		if (in_interrupt()) {
-			if (in_irq())
-				intr='h';
-			else if (in_softirq())
-				intr='s';
-		}
-		pr_info("%s(%d):%ld:%c ", current->comm, current->tgid, sz, intr);
-	}
+	PRINT_CTX();
 	jprobe_return(); // must
 	return 0;  // not reached.
 }
@@ -67,11 +56,9 @@ static struct jprobe jpb = {
 static int ret_handler(struct kretprobe_instance *kri, struct pt_regs *regs)
 {
 	u32 retval = regs_return_value(regs);
-	pr_info("                                         0x%x\n", retval);
-	//printk_ratelimited(KERN_INFO "                                         0x%x\n", retval);
-	//printk (KERN_INFO "%s returns 0x%lx\n", funcname, retval);
+	pr_info_ratelimited(" ret=0x%x\n", retval);
 	if (!retval)
-		pr_warn(" *** FAILURE indicated!!\n");
+		pr_warn_ratelimited(" *** ret: FAILURE indicated!!\n");
 	return 0;
 }
 

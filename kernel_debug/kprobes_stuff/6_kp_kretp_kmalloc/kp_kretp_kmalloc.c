@@ -14,8 +14,8 @@ MODULE_LICENSE("Dual MIT/GPL");
 
 static void * jp_kmalloc(size_t sz, gfp_t flags)  /* This function signature MUST MATCH jprobed func */
 {
-	MSG_SHORT ("__kmalloc(%lu) : ", sz);
 	PRINT_CTX();
+	pr_info_ratelimited(" __kmalloc(%lu) ", sz);
 	jprobe_return();
 	return 0;
 }
@@ -30,10 +30,9 @@ static struct jprobe jpb = {
 /* Return probe handler */
 static int ret_handler(struct kretprobe_instance *kri, struct pt_regs *regs)
 {
-	MSG_SHORT("__kmalloc return ptr: 0x%lx : ", regs->ax);
-	PRINT_CTX();
+	pr_info_ratelimited("  = 0x%lx\n", regs->ax);
 	if (regs->ax <= 0)
-		printk (KERN_WARNING "    FAILURE indicated!!\n");
+		pr_warn_ratelimited(" *** ret: FAILURE indicated!!\n");
 	return 0;
 }
 

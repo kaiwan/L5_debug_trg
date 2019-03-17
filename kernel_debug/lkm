@@ -1,0 +1,58 @@
+#!/bin/bash
+# silly kernel module dev helper wrapper script
+
+unset ARCH
+unset CROSS_COMPILE
+
+name=$(basename $0)
+#[ `id -u` -ne 0 ] && {
+# echo "$name: Need to be root!"
+# exit 1
+#}
+
+SEP="-----------------------------------------------------------------------"
+if [ $# -ne 1 ]; then
+	echo "Usage: $name name-of-kernel-module-file (without the .c)"
+	exit 1
+fi
+
+if [[ "${1}" = *"."* ]]; then
+	echo "Usage: $name name-of-kernel-module-file ONLY (do NOT put any extension)."
+	exit 1
+fi
+
+echo $SEP
+echo "Version info:"
+# TODO - take into a/c diff Linux distros
+cat /etc/fedora-release
+#cat /etc/issue
+uname -r
+
+echo $SEP
+echo "sudo rmmod $1 2> /dev/null"
+sudo rmmod $1 2> /dev/null
+
+echo $SEP
+echo "make clean"
+echo $SEP
+make clean
+
+echo $SEP
+echo "sudo dmesg -c > /dev/null"
+echo $SEP
+sudo dmesg -c > /dev/null
+
+echo $SEP
+echo "make || exit 1"
+echo $SEP
+make || exit 1
+
+echo $SEP
+echo "sudo insmod ./$1.ko && lsmod|grep $1"
+echo $SEP
+sudo insmod ./$1.ko && lsmod|grep $1
+
+echo $SEP
+echo "dmesg"
+echo $SEP
+dmesg

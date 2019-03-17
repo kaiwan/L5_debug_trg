@@ -132,18 +132,27 @@ if [ `id -u` -ne 0 ]; then
 	echo "$name: Sorry, you need to run $name as superuser."
 	exit 1
 fi
-grep -q CONFIG_KPROBES /boot/config-$(uname -r) || {
-	echo "${name}: Kprobes does not seem to be supported on this kernel [1]."
-	exit 1
+echo -n "[ "
+KPROBES_SUPPORTED=0
+[ -f /boot/config-$(uname -r) ] && {
+	grep -q CONFIG_KPROBES /boot/config-$(uname -r) && KPROBES_SUPPORTED=1
 }
-grep -w register_kprobe /boot/System.map-$(uname -r) || {
-	echo "${name}: Kprobes does not seem to be supported on this kernel [2]."
-	exit 1
+[ -f /boot/config-$(uname -r) ] && {
+	grep -w register_kprobe /boot/System.map-$(uname -r) && KPROBES_SUPPORTED=1
 }
+[ -f /proc/config.gz ] && {
+	zcat /proc/config.gz |grep -i kprobes && KPROBES_SUPPORTED=1
+}
+[ ${KPROBES_SUPPORTED} -eq 0 ] && {
+	  echo "${name}: Kprobes does not seem to be supported on this kernel [2]."
+	  exit 1
+}
+echo " ] "
 
 #echo "$#: $*"
 VERBOSE=0
 if [ $# -eq 2 ]; then
+	echo
 	echo "$name: 0: Assume that we're k-probing something in the kernel itself."
 	PROBE_KERNEL=1
 	FUNCTION=$1

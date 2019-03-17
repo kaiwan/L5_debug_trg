@@ -1,5 +1,11 @@
 Tips:
 -----
+
+----------------- IMP!
+Jprobes has been *REMOVED* from kernel ver 4.15
+The API wrappers are still present, but it won't really work!
+------------------------
+
 Jprobes is a kernel feature; first, check whether Jprobes is enabled
 for the current kernel:
 

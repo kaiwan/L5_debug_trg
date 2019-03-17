@@ -1,6 +1,11 @@
 Tips:
 -----
 
+----------------- IMP!
+Jprobes has been *REMOVED* from kernel ver 4.15
+The API wrappers are still present, but it won't really work!
+------------------------
+
 1. Kprobes is a kernel feature; first, check whether Kprobes is enabled
 for the current kernel:
 grep CONFIG_KPROBES /boot/config-$(uname -r)

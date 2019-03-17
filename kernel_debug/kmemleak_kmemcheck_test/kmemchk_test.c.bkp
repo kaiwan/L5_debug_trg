@@ -1,0 +1,77 @@
+/*
+ kmemchk_test.c
+ Kernel module.
+ We've built a custom kernel (v3.18.22) with kmemcheck (CONFIG_KMEMCHECK) 
+ enabled. 
+ This is a simple module to test kmemcheck; we delibrately leave some memory
+ uninitialized and access it.. this should cause kmemcheck to jump up and
+ trigger noisy printk's.
+ 
+ Tip: Ensure kmemcheck is currently enabled before testing..
+ # echo 1 > /proc/sys/kernel/kmemcheck
+
+ (c) kaiwanTECH
+ */
+#include <linux/init.h>
+#include <linux/module.h>
+#include <linux/slab.h>
+//#include "convenient.h"
+
+static int gfp_test(void)
+{
+    unsigned long kbuf, *kp;
+    kbuf = __get_free_page(GFP_KERNEL);
+    kp = (unsigned long *)kbuf;
+    if (!kp) {
+        pr_warn("out of memory!");
+        return -ENOMEM;
+    }
+    pr_info("$$$ gfp_test: kptr=0x%x ; accessing mem now: 0x%x\n", 
+        (unsigned int)kbuf, 
+        (unsigned int)*(kp+20));
+    print_hex_dump_bytes("$$$", DUMP_PREFIX_ADDRESS, kp, 32);
+    free_page(kbuf);
+	return 0;
+}
+
+static int slab_test(void)
+{
+    void *kbuf;
+    kbuf = kmalloc(512, GFP_KERNEL);
+    if (!kbuf) {
+        pr_warn("out of memory!");
+        return -ENOMEM;
+    }
+    pr_info("### slab_test: kbuf=%p\n", kbuf);
+    print_hex_dump_bytes("###", DUMP_PREFIX_ADDRESS, kbuf, 32);
+    kfree(kbuf);
+    return 0;
+}
+
+static int __init kmemchk_test_init(void)
+{
+    int local_init=5, local_uninit;
+
+	pr_info("Hi, accessing local vars now: local_init=%d local_uninit=%d\n", 
+        local_init, local_uninit);
+        /* Obvious bug: even gcc triggers a warning:
+        "warning: ‘local_uninit’ is used uninitialized in this function [-Wuninitialized]"
+        Even so, kmemcheck CANNOT catch this bug as it's compile-time 
+        allocated memory!
+        */
+
+	gfp_test();
+	slab_test();
+
+    return 0; // success
+}
+
+static void __exit kmemchk_test_exit(void)
+{
+	pr_info("Goodbye\n");
+}
+
+module_init(kmemchk_test_init);
+module_exit(kmemchk_test_exit);
+
+MODULE_LICENSE("Dual BSD/GPL");

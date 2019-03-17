@@ -1,0 +1,19 @@
+#!/bin/bash
+# silly kernel module dev helper wrapper script
+
+SEP="-----------------------------------------------------------------------"
+name=$(basename $0)
+if [ $# -ne 1 ]; then
+	echo "Usage: $name name-of-kernel-module (without the .c)"
+	exit 1
+fi
+rmmod $1
+echo $SEP
+make clean
+echo $SEP
+dmesg -c
+echo $SEP
+make && insmod ./$1.ko && lsmod|grep $1
+echo $SEP
+dmesg
+

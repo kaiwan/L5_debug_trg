@@ -31,6 +31,7 @@ echo "---snip---"
 
 [ -f .text ] && {
    sudo echo -n add-symbol-file $2 `/bin/cat .text`
+   sudo echo  " \\"
 } || [ -f .init.text ] && {
    sudo echo -n add-symbol-file $2 `/bin/cat .init.text`
 }

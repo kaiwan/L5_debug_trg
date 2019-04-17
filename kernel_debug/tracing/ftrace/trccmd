@@ -1,0 +1,63 @@
+#!/bin/bash
+# trccmd
+# A simple wrapper over the useful trace-cmd front-end to ftrace
+#
+# Kaiwan NB, kaiwanTECH
+name=$(basename $0)
+TRC_FILE=/tmp/trc.txt
+TRC_FILE_TRCOMP=/tmp/trc_trcomp.txt
+
+
+## "main" here
+[ `id -u` -ne 0 ] && {
+ echo "${name}: Need to be root."
+ exit 1
+}
+echo -n "[+] Checking for ftrace support ..."
+mount | grep debugfs > /dev/null 2>&1 || {
+ echo "${name}: debugfs not mounted? Aborting..."
+ exit 1
+}
+[ ! -d /sys/kernel/debug ] && {
+ echo "${name}: /sys/kernel/debug not mounted as debugfs? Aborting..."
+ exit 2
+}
+ which trace-cmd >/dev/null 2>&1 || {
+  echo "${name}: trace-cmd not installed (or not in PATH)?"
+  exit 1
+ }
+echo " [OK]"
+
+[ $# -lt 1 ] && {
+ echo "Usage: ${name} program-to-ftrace-via-trace-cmd
+ Eg. sudo ./${name} ps -LA
+ [NOTE: this will perform an Exclusive ftrace of the provided app (ps in this eg)]"
+ exit 3
+}
+
+echo "[+] Recording now ..."
+trace-cmd record -p function_graph -F "$@" || {
+  echo "${name}: 'trace-cmd record' failed, aborting ..."
+  exit 4
+}
+
+echo "[+] Reporting now (ftrace) ..."
+echo "    Note: report done in latency format, leaving out interrupt contexts"
+trace-cmd report -I -S -l > ${TRC_FILE} || {
+  echo "${name}: 'trace-cmd report' failed, aborting ..."
+  exit 5
+}
+echo "[+] Done, report: ${TRC_FILE}"
+ls -lh ${TRC_FILE}
+
+# For LTTng TraceCompass GUI: record with -R     << not working w/ tracecompass?? >>
+echo "[+] Reporting now (for TraceCompass with -R) ..."
+echo "    Note: report done in latency format, leaving out interrupt contexts"
+trace-cmd report -I -S -l -R > ${TRC_FILE_TRCOMP} || {
+  echo "${name}: 'trace-cmd report' failed, aborting ..."
+  exit 5
+}
+echo "[+] Done, report: ${TRC_FILE_TRCOMP}"
+ls -lh ${TRC_FILE_TRCOMP}
+
+exit 0

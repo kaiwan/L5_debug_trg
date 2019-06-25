@@ -41,7 +41,7 @@ init_ftrc()
 
 
 ## "main" here
-[ `id -u` -ne 0 ] && {
+[ $(id -u) -ne 0 ] && {
  echo "${name}: Need to be root."
  exit 1
 }
@@ -50,8 +50,8 @@ mount | grep debugfs > /dev/null 2>&1 || {
  echo "${name}: debugfs not mounted? Aborting..."
  exit 1
 }
-[ ! -d /sys/kernel/debug ] && {
- echo "${name}: /sys/kernel/debug not mounted as debugfs? Aborting..."
+[ ! -d ${PFX} ] && {
+ echo "${name}: directory \"${PFX}\" unavailable? Aborting..."
  exit 2
 }
 echo " [OK]"
@@ -61,7 +61,7 @@ echo " [OK]"
  Eg. sudo ./${name} ps -LA
  [NOTE: other stuff running _also_ gets ftraced (this is non-exclusive).
  If you'd prefer _only_ tracing a particular process, it's easier to setup
- with trace-cmd]"
+ with 'trace-cmd record -F <app>']"
  exit 3
 }
 

@@ -18,8 +18,8 @@ mount | grep debugfs > /dev/null 2>&1 || {
  echo "${name}: debugfs not mounted? Aborting..."
  exit 1
 }
-[ ! -d /sys/kernel/debug ] && {
- echo "${name}: /sys/kernel/debug not mounted as debugfs? Aborting..."
+[ ! -d /sys/kernel/debug/tracing ] && {
+ echo "${name}: /sys/kernel/debug/tracing not mounted? Aborting..."
  exit 2
 }
  which trace-cmd >/dev/null 2>&1 || {

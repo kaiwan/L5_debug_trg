@@ -82,10 +82,17 @@ echo "[+] ${name}: Running \"$@\" now ..."
  echo 1 > ${TRCMNT}/tracing_on ; eval "$@" ; echo 0 > ${TRCMNT}/tracing_on 
 #---
 
-echo "[+] ${name}: Setting up ${TRC_FILE}, pl wait ..."
+echo "[+] ${name}: Setting up full tracing report \"${TRC_FILE}\", pl wait ..."
 cp ${TRCMNT}/trace ${TRC_FILE}
-echo "[+] ${name}: Done. Trace file in ${TRC_FILE}"
+echo "[+] ${name}: Done. Full trace file in ${TRC_FILE}"
 ls -lh ${TRC_FILE}
+
+prg="$@"
+prg2=$(echo "${prg}" |awk '{print $1}')
+prgname=$(basename ${prg2})
+echo "[+] ${name}: now generating *filtered* trace report for process/thread \"${prgname}\" only... "
+grep "^ [0-9]).*${prgname}" ${TRC_FILE} > trc_${prgname}.txt
+ls -lh trc_${prgname}.txt
 
 ###########################################
 # TIP:

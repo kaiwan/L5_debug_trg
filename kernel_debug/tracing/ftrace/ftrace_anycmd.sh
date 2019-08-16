@@ -87,11 +87,13 @@ cp ${TRCMNT}/trace ${TRC_FILE}
 echo "[+] ${name}: Done. Full trace file in ${TRC_FILE}"
 ls -lh ${TRC_FILE}
 
+### Filtered report: it's a bit iffy :-/   YMMV
 prg="$@"
 prg2=$(echo "${prg}" |awk '{print $1}')
 prgname=$(basename ${prg2})
 echo "[+] ${name}: now generating *filtered* trace report for process/thread \"${prgname}\" only... "
-grep "^ [0-9]).*${prgname}" ${TRC_FILE} > trc_${prgname}.txt
+egrep "^ [0-9]) +${prgname} " ${TRC_FILE} > trc_${prgname}.txt
+#grep "^ [0-9]).*${prgname}" ${TRC_FILE} > trc_${prgname}.txt
 ls -lh trc_${prgname}.txt
 
 ###########################################

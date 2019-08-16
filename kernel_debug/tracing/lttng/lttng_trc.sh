@@ -68,6 +68,8 @@ which lttng >/dev/null || die "lttng not installed?"
 lsmod |grep -q "^lttng_" || die "lttng kernel modules not seen"
 echo "[OK]"
 
+# TODO - put the full name instead of just $1;
+# but, will need to replace spaces with an '_'
 SESSION=${SESSION}_$1_$(date +%d%b%y_%H%M)
 TRC_OUT_DIR=${TRC_OUT_DIR}/${SESSION}
 echo "[+] lttng create ${SESSION} --output=${TRC_OUT_DIR}"

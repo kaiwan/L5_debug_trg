@@ -4,39 +4,38 @@
 # The program the user passes is ftrace-d; BUT, it's simplistic:
 # whatever else is running at the time is traced as well.
 #
-# Kaiwan NB, kaiwanTECH, May16.
+# Kaiwan NB, kaiwanTECH
 # License: MIT
 name=$(basename $0)
-PFX=/sys/kernel/debug/tracing
 TRC_FILE=/tmp/trc.txt
 
 reset_ftrc()
 {
- echo 0 > ${PFX}/tracing_on
- echo nop > ${PFX}/current_tracer
- echo 1 > ${PFX}/options/latency-format
- echo 0 > ${PFX}/options/context-info
- echo 0 > ${PFX}/options/userstacktrace
- echo 0 > ${PFX}/tracing_max_latency # reset
+ echo 0 > ${TRCMNT}/tracing_on
+ echo nop > ${TRCMNT}/current_tracer
+ echo 1 > ${TRCMNT}/options/latency-format
+ echo 0 > ${TRCMNT}/options/context-info
+ echo 0 > ${TRCMNT}/options/userstacktrace
+ echo 0 > ${TRCMNT}/tracing_max_latency # reset
 
- echo "" > ${PFX}/set_ftrace_filter
- echo "" > ${PFX}/set_ftrace_notrace
- echo "" > ${PFX}/set_ftrace_pid
- echo 2048 > ${PFX}/buffer_size_kb
+ echo "" > ${TRCMNT}/set_ftrace_filter
+ echo "" > ${TRCMNT}/set_ftrace_notrace
+ echo "" > ${TRCMNT}/set_ftrace_pid
+ echo 2048 > ${TRCMNT}/buffer_size_kb
 }
 
 init_ftrc()
 {
- echo function_graph > ${PFX}/current_tracer
- echo 1 > ${PFX}/options/latency-format
- echo 1 > ${PFX}/options/context-info
- echo funcgraph-proc > ${PFX}/trace_options
- echo 1 > ${PFX}/options/userstacktrace
+ echo function_graph > ${TRCMNT}/current_tracer
+ echo 1 > ${TRCMNT}/options/latency-format
+ echo 1 > ${TRCMNT}/options/context-info
+ echo funcgraph-proc > ${TRCMNT}/trace_options
+ echo 1 > ${TRCMNT}/options/userstacktrace
 
- echo "" > ${PFX}/set_ftrace_filter
- echo "" > ${PFX}/set_ftrace_notrace
- echo "" > ${PFX}/set_ftrace_pid
- echo 20480 > ${PFX}/buffer_size_kb
+ echo "" > ${TRCMNT}/set_ftrace_filter
+ echo "" > ${TRCMNT}/set_ftrace_notrace
+ echo "" > ${TRCMNT}/set_ftrace_pid
+ echo 20480 > ${TRCMNT}/buffer_size_kb
 }
 
 
@@ -50,22 +49,27 @@ mount | grep debugfs > /dev/null 2>&1 || {
  echo "${name}: debugfs not mounted? Aborting..."
  exit 1
 }
-[ ! -d ${PFX} ] && {
- echo "${name}: directory \"${PFX}\" unavailable? Aborting..."
+mount |grep -q -w debugfs || {
+ echo "${name}: debugfs filesystem not mounted? Aborting..."
  exit 2
 }
-echo " [OK]"
+TRCMNT=$(mount |grep -w debugfs |awk '{print $3}')
+export TRCMNT=${TRCMNT}/tracing
+[ ! -d ${TRCMNT} ] && {
+ echo "${name}: ${TRCMNT} not mounted as debugfs? Aborting..."
+ exit 2
+}
+echo " [OK] (ftrace loc: ${TRCMNT})"
 
 [ $# -lt 1 ] && {
  echo "Usage: ${name} program-to-ftrace
  Eg. sudo ./${name} ps -LA
  [NOTE: other stuff running _also_ gets ftraced (this is non-exclusive).
  If you'd prefer _only_ tracing a particular process, it's easier to setup
- with 'trace-cmd record -F <app>']"
+ with trace-cmd]"
  exit 3
 }
 
-#cd /sys/kernel/debug/tracing || exit 3
 echo "[+] ${name}: ftrace init ..."
 reset_ftrc
 init_ftrc
@@ -75,11 +79,11 @@ init_ftrc
 echo "[+] ${name}: Running \"$@\" now ..."
 
 #--- perform the ftrace
- echo 1 > ${PFX}/tracing_on ; eval "$@" ; echo 0 > ${PFX}/tracing_on 
+ echo 1 > ${TRCMNT}/tracing_on ; eval "$@" ; echo 0 > ${TRCMNT}/tracing_on 
 #---
 
 echo "[+] ${name}: Setting up ${TRC_FILE}, pl wait ..."
-cp ${PFX}/trace ${TRC_FILE}
+cp ${TRCMNT}/trace ${TRC_FILE}
 echo "[+] ${name}: Done. Trace file in ${TRC_FILE}"
 ls -lh ${TRC_FILE}
 

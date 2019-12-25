@@ -1,5 +1,5 @@
 #!/bin/bash
-# ftrace1.sh
+# ftrace_anycmd.sh
 # A simple demo of using the powerful kernel ftrace facility.
 # The program the user passes is ftrace-d; BUT, it's simplistic:
 # whatever else is running at the time is traced as well.
@@ -85,8 +85,6 @@ echo " [OK] (ftrace loc: ${TRCMNT})"
      (core #0)"
  exit 3
 }
-prg="$@"
-ret=0
 
 echo "[+] ${name}: ftrace init ..."
 reset_ftrc
@@ -100,16 +98,18 @@ echo 1 > ${TRCMNT}/tracing_cpumask
 echo "    orig cpumask = ${orig_cpumask}"
 echo "    curr cpumask = $(cat ${TRCMNT}/tracing_cpumask)"
 
-echo "[+] ${name}: Running \"${prg}\" now ..."
- echo 1 > ${TRCMNT}/tracing_on ; eval "$@" ; echo 0 > ${TRCMNT}/tracing_on
- #echo 1 > ${TRCMNT}/tracing_on ; eval "${prg}" ; echo 0 > ${TRCMNT}/tracing_on
+echo "[+] ${name}: Running \"sudo taskset -c 0 $@\" now ..."
+#--- perform the ftrace on CPU #0 only
+echo 1 > ${TRCMNT}/tracing_on ; sudo taskset -c 0 "$@" ; echo 0 > ${TRCMNT}/tracing_on
 #---
+# 'Should' work via just the eval $@ but it causes the filtering to fail.. unsure why??
+# With doing the explicit taskset it does work...
+ #echo 1 > ${TRCMNT}/tracing_on ; eval "$@" ; echo 0 > ${TRCMNT}/tracing_on
 
 echo "[+] ${name}: Setting up full tracing report \"${TRC_FILE}\", pl wait ..."
 cp ${TRCMNT}/per_cpu/cpu0/trace ${TRC_FILE}
 cp ${TRCMNT}/per_cpu/cpu0/stats ${TRC_FILE}.stats
 sync
-#cp ${TRCMNT}/trace ${TRC_FILE} ; sync
 echo "[+] ${name}: Done. Full trace file in ${TRC_FILE} (stats in ${TRC_FILE}.stats)"
 ls -lh ${TRC_FILE}*
 
@@ -119,7 +119,10 @@ ls -lh ${TRC_FILE}*
 #grep "^ [0-9]) * <prcsnm>[- ]" ${TRC_FILE}
 # NOTE: the process-name is truncated to just 7 chars, so don't use
 # any more than 7 in the grep regex!
+###
 ### Filtered report: it's a bit iffy :-/   YMMV
+ret=0
+prg="$@"
 prg2=$(echo "${prg}" |awk '{print $1}')
 prgname=$(basename ${prg2})
 echo "[+] ${name}: now generating *filtered* trace report for process/thread \"${prgname}\" only here... "
@@ -128,6 +131,7 @@ egrep "^ [0-9]) * ${prgname}[- ]" ${TRC_FILE} > trc_${prgname}.txt
 sz=$(stat --printf="%s" trc_${prgname}.txt)
 [ ${sz} -ne 0 ] && ls -lh trc_${prgname}.txt || {
   echo " Couldn't seem to get the filtered trace, sorry!"
+  rm -f trc_${prgname}.txt 2>/dev/null
   ret=1
 }
 

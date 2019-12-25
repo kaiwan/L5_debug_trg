@@ -19,22 +19,27 @@ reset_ftrc()
  echo 0 > ${TRCMNT}/options/context-info
  echo 0 > ${TRCMNT}/options/display-graph
  echo 0 > ${TRCMNT}/options/userstacktrace
+ echo 0 > ${TRCMNT}/options/verbose
  echo 0 > ${TRCMNT}/tracing_max_latency # reset
 
  echo "" > ${TRCMNT}/set_ftrace_filter
  echo "" > ${TRCMNT}/set_ftrace_notrace
  echo "" > ${TRCMNT}/set_ftrace_pid
  echo 2048 > ${TRCMNT}/buffer_size_kb
+ cat /dev/null > ${TRCMNT}/trace
+ echo -n ${orig_cpumask} > ${TRCMNT}/tracing_cpumask
 }
 
 init_ftrc()
 {
+ cat /dev/null > ${TRCMNT}/trace
  echo function_graph > ${TRCMNT}/current_tracer
  echo 1 > ${TRCMNT}/options/latency-format
  echo 1 > ${TRCMNT}/options/context-info
  echo 1 > ${TRCMNT}/options/display-graph
  echo funcgraph-proc > ${TRCMNT}/trace_options
  echo 1 > ${TRCMNT}/options/userstacktrace
+ echo 1 > ${TRCMNT}/options/verbose
 
  echo "" > ${TRCMNT}/set_ftrace_filter
  echo "" > ${TRCMNT}/set_ftrace_notrace
@@ -48,6 +53,10 @@ init_ftrc()
  echo "${name}: Need to be root."
  exit 1
 }
+
+trap 'reset_ftrc' INT QUIT
+
+# TODO: >= 4.1 it's become the 'tracefs' filesystem!
 echo -n "[+] Checking for ftrace support ..."
 mount | grep debugfs > /dev/null 2>&1 || {
  echo "${name}: debugfs not mounted? Aborting..."
@@ -76,6 +85,8 @@ echo " [OK] (ftrace loc: ${TRCMNT})"
      (core #0)"
  exit 3
 }
+prg="$@"
+ret=0
 
 echo "[+] ${name}: ftrace init ..."
 reset_ftrc
@@ -83,9 +94,15 @@ init_ftrc
 #echo "Available tracers:"
 #cat available_tracers
 
-echo "[+] ${name}: Running \"sudo taskset -c 0 $@\" now ..."
-#--- perform the ftrace on CPU #0 only
- echo 1 > ${TRCMNT}/tracing_on ; sudo taskset -c 0 "$@" ; echo 0 > ${TRCMNT}/tracing_on 
+#--- perform the ftrace on CPU #0 only (bit 1 set)
+orig_cpumask=$(cat ${TRCMNT}/tracing_cpumask)
+echo 1 > ${TRCMNT}/tracing_cpumask
+echo "    orig cpumask = ${orig_cpumask}"
+echo "    curr cpumask = $(cat ${TRCMNT}/tracing_cpumask)"
+
+echo "[+] ${name}: Running \"${prg}\" now ..."
+ echo 1 > ${TRCMNT}/tracing_on ; eval "$@" ; echo 0 > ${TRCMNT}/tracing_on
+ #echo 1 > ${TRCMNT}/tracing_on ; eval "${prg}" ; echo 0 > ${TRCMNT}/tracing_on
 #---
 
 echo "[+] ${name}: Setting up full tracing report \"${TRC_FILE}\", pl wait ..."
@@ -99,12 +116,10 @@ ls -lh ${TRC_FILE}*
 ###
 # TIP:
 # filter out everything else by:
-#grep "^ [0-9]).*<prcsnm>" ${TRC_FILE}
+#grep "^ [0-9]) * <prcsnm>[- ]" ${TRC_FILE}
 # NOTE: the process-name is truncated to just 7 chars, so don't use
 # any more than 7 in the grep regex!
-###
 ### Filtered report: it's a bit iffy :-/   YMMV
-prg="$@"
 prg2=$(echo "${prg}" |awk '{print $1}')
 prgname=$(basename ${prg2})
 echo "[+] ${name}: now generating *filtered* trace report for process/thread \"${prgname}\" only here... "
@@ -113,7 +128,8 @@ egrep "^ [0-9]) * ${prgname}[- ]" ${TRC_FILE} > trc_${prgname}.txt
 sz=$(stat --printf="%s" trc_${prgname}.txt)
 [ ${sz} -ne 0 ] && ls -lh trc_${prgname}.txt || {
   echo " Couldn't seem to get the filtered trace, sorry!"
+  ret=1
 }
 
 reset_ftrc
-exit 0
+exit ${ret}

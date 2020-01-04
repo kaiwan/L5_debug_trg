@@ -125,15 +125,33 @@ ret=0
 prg="$@"
 prg2=$(echo "${prg}" |awk '{print $1}')
 prgname=$(basename ${prg2})
-echo "[+] ${name}: now generating *filtered* trace report for process/thread \"${prgname}\" only here... "
+echo "[+] ${name}: now generating *filtered* trace report for process/thread \"${prgname}\" only ... "
 egrep "^ [0-9]) * ${prgname}[- ]" ${TRC_FILE} > trc_${prgname}.txt
 #grep "^ [0-9]).*${prgname}" ${TRC_FILE} > trc_${prgname}.txt
-sz=$(stat --printf="%s" trc_${prgname}.txt)
-[ ${sz} -ne 0 ] && ls -lh trc_${prgname}.txt || {
-  echo " Couldn't seem to get the filtered trace, sorry!"
+
+sz=$(stat trc_${prgname}.txt |grep "Size:"|awk  '{print $2}')
+if [ ${sz} -eq 0 ] ; then
+  echo " Couldn't seem to get the filtered trace directly, trying fallback approach..."
   rm -f trc_${prgname}.txt 2>/dev/null
-  ret=1
-}
+
+  # fallback: look for first 7 chars of this script name foll by "-<PID>"
+  first7=$(echo "${name}" |awk '{printf("%s", substr($0,1,7))}')
+  searchstr="${first7}-$$"
+  #echo "searchstr=${searchstr}"
+  egrep "^ [0-9]) * ${searchstr}" ${TRC_FILE} > trc_${prgname}.txt
+  sz=$(stat trc_${prgname}.txt |grep "Size:"|awk  '{print $2}')
+  if [ ${sz} -eq 0 ] ; then
+     echo " Couldn't seem to get the filtered trace, sorry!"
+     rm -f trc_${prgname}.txt 2>/dev/null
+     ret=1
+  else
+     echo " Got it:"
+     ls -l trc_${prgname}.txt
+  fi
+else
+  echo " Got it:"
+  ls -l trc_${prgname}.txt
+fi
 
 reset_ftrc
 exit ${ret}

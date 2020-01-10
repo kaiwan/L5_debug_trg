@@ -10,11 +10,43 @@ name=$(basename $0)
 TRC_FILE=/tmp/trc.txt
 # Setup a large buffer (200 MiB) to capture info
 BUFFERSZ=204800
+#-------------- r u n c m d -------------------------------------------
+# Display and run the provided command.
+# Parameter 1 : the command to run
+runcmd()
+{
+SEP="------------------------------"
+[ $# -eq 0 ] && return
+echo "${SEP}
+$*"
+eval "$*"
+}
+
+#-------------- r u n c m d _ f a i l c h k ---------------------------
+# Display and run the provided command; check for failure case
+#  Parameter 1 : 0 => non-fatal, +ve => fatal exit with this error val
+#  Parameter 2... : the command to run
+runcmd_failchk()
+{
+SEP="------------------------------"
+[ $# -eq 0 ] && return
+local errcode=$1
+shift
+echo "${SEP}
+$*"
+eval "$*" || {
+  echo -n " *WARNING* execution failure"
+  if [ ${errcode} -ne 0 ] ; then
+    echo " : FATAL error (${errcode}), aborting now"
+    exit ${errcode}
+  fi
+}
+}
 
 reset_ftrc()
 {
  echo 0 > ${TRCMNT}/tracing_on
- echo nop > ${TRCMNT}/current_tracer
+ runcmd_failchk 1 "echo nop > ${TRCMNT}/current_tracer"
  echo 1 > ${TRCMNT}/options/latency-format
  echo 0 > ${TRCMNT}/options/context-info
  echo 0 > ${TRCMNT}/options/display-graph
@@ -33,18 +65,18 @@ reset_ftrc()
 init_ftrc()
 {
  cat /dev/null > ${TRCMNT}/trace
- echo function_graph > ${TRCMNT}/current_tracer
+ runcmd_failchk 1 "echo function_graph > ${TRCMNT}/current_tracer"
  echo 1 > ${TRCMNT}/options/latency-format
  echo 1 > ${TRCMNT}/options/context-info
  echo 1 > ${TRCMNT}/options/display-graph
- echo funcgraph-proc > ${TRCMNT}/trace_options
+ runcmd_failchk 1 "echo funcgraph-proc > ${TRCMNT}/trace_options"
  echo 1 > ${TRCMNT}/options/userstacktrace
  echo 1 > ${TRCMNT}/options/verbose
 
  echo "" > ${TRCMNT}/set_ftrace_filter
  echo "" > ${TRCMNT}/set_ftrace_notrace
  echo "" > ${TRCMNT}/set_ftrace_pid
- echo ${BUFFERSZ} > ${TRCMNT}/buffer_size_kb
+ runcmd_failchk 1 "echo ${BUFFERSZ} > ${TRCMNT}/buffer_size_kb"
 }
 
 

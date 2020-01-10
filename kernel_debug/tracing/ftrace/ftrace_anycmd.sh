@@ -1,15 +1,19 @@
-#!/bin/bash
+#!/bin/sh
 # ftrace_anycmd.sh
 # A simple demo of using the powerful kernel ftrace facility.
 # The program the user passes is ftrace-d; BUT, it's simplistic:
 # whatever else is running at the time is traced as well.
+# To help, we do attempt to filter out the noise and display just the
+# items of relevance - the process being traced; but, YMMV! (Your Mileage
+# May Vary :-)
 #
-# Kaiwan NB, kaiwanTECH
+# (c) Kaiwan N Billimoria, kaiwanTECH
 # License: MIT
 name=$(basename $0)
 TRC_FILE=/tmp/trc.txt
-# Setup a large buffer (200 MiB) to capture info
-BUFFERSZ=204800
+# Setup buffer size of BUFFERSZ KB to capture info
+BUFFERSZ=10240  #204800  # in KiB
+
 #-------------- r u n c m d -------------------------------------------
 # Display and run the provided command.
 # Parameter 1 : the command to run
@@ -104,7 +108,22 @@ export TRCMNT=${TRCMNT}/tracing
  echo "${name}: ${TRCMNT} not mounted as debugfs? Aborting..."
  exit 2
 }
+
+at=$(cat /sys/kernel/debug/tracing/available_tracers)
+if [ "${at}" = "nop" ] ; then
+ echo "${name}: Appears that Ftrace is present But Only the 'nop' plugin is
+available; this typically implies that ftrace has not been fully configured
+within the kernel. Pl re-configure, rebuild the kernel, install it and then
+retry this script. Aborting..."
+ exit 5
+fi
+
 echo " [OK] (ftrace loc: ${TRCMNT})"
+
+which taskset >/dev/null 2>&1 || {
+ echo "${name}: taskset(1) utility is required, pl install it. Aborting..."
+ exit 3
+}
 
 [ $# -lt 1 ] && {
  echo "Usage: ${name} program-to-ftrace
@@ -115,8 +134,9 @@ echo " [OK] (ftrace loc: ${TRCMNT})"
  with trace-cmd (or our 'trccmd' front-end to it)]
  (b) to help filter, we deliberately perform the run on only a single CPU core
      (core #0)"
- exit 3
+ exit 4
 }
+
 
 echo "[+] ${name}: ftrace init ..."
 reset_ftrc

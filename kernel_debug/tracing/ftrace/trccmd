@@ -49,7 +49,7 @@ trace-cmd record -p function_graph -F "$@" || {
 
 echo "[+] Reporting now (ftrace) ..."
 echo "    Note: report done in latency format, *leaving out* interrupt contexts"
-trace-cmd report -I -S -l > ${TRC_FILE} || {
+trace-cmd report -i ./trace.dat -I -S -l > ${TRC_FILE} || {
   echo "${name}: 'trace-cmd report' failed, aborting ..."
   exit 5
 }
@@ -60,7 +60,8 @@ ls -lh ${TRC_FILE}
 # For LTTng TraceCompass GUI: record with -R     << not working w/ tracecompass?? >>
 echo "[+] Reporting now (for TraceCompass with -R;   YMMV, of course) ..."
 echo "    Note: report done in latency format, *leaving out* interrupt contexts"
-trace-cmd report -I -S -l -R > ${TRC_FILE_TRCOMP} || {
+#trace-cmd report -i ./trace.dat -I -S -l -R > ${TRC_FILE_TRCOMP} || {
+trace-cmd report -i ./trace.dat -R > ${TRC_FILE_TRCOMP} || {
   echo "${name}: 'trace-cmd report' failed, aborting ..."
   exit 5
 }

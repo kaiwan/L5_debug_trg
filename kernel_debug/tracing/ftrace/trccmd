@@ -51,7 +51,6 @@ which trace-cmd >/dev/null 2>&1 || {
  }
 echo "trace-cmd [OK]"
 
-
 TRC_FILE_BINARY=trc.dat
 [ $# -ge 1 ] && TRC_FILE_BINARY=$(basename "$1")_trc.dat
 #echo "TRC_FILE_BINARY = ${TRC_FILE_BINARY}"

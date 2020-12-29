@@ -15,11 +15,9 @@
 # License: MIT
 name=$(basename "$0")
 
-PDIR=$(which $0)
-[ -z "${PDIR}" ] && PDIR=.       # true if script isn't in PATH
-export PFX=$(dirname ${PDIR})    # dir in which this script and tools reside
-source ${PFX}/config.trccmd || {
- echo "${name}: fatal: could not source file '${PFX}/config.trccmd', aborting..."
+CONFIG=~/.local/bin/trccmd.config
+source ${CONFIG} || {
+ echo "${name}: fatal: could not source file '${CONFIG}', aborting..."
  exit 1
 }
 
@@ -84,7 +82,9 @@ TRC_FILE_BINARY=trc.dat
 OPTS_RECORD="-o "${TRC_FILE_BINARY}""
 [ ${QUIET_MODE} -eq 1 ] && OPTS_RECORD="${OPTS_RECORD} -q"
 if [ ${SHOW_PARAMETERS} -eq 1 ] ; then
-  echo "Recording: showing parameters and their runtime values; will lose function-graph..."
+  echo "
+  Recording: showing parameters and their runtime values; will lose function-graph...
+  "
   OPTS_RECORD="${OPTS_RECORD} -e all"
 else
   OPTS_RECORD="${OPTS_RECORD} -p function_graph"

@@ -15,6 +15,10 @@
 # License: MIT
 name=$(basename "$0")
 
+[ "$(id -u)" -eq 0 ] && {
+ echo "${name}: Please don't run as root."
+ exit 1
+}
 CONFIG=~/.local/bin/trccmd.config
 source ${CONFIG} || {
  echo "${name}: fatal: could not source file '${CONFIG}', aborting..."
@@ -43,22 +47,20 @@ if [ $# -ge 1 ] ; then
  fi
 fi
 
-[ "$(id -u)" -ne 0 ] && {
- echo "${name}: Need to be root."
- exit 1
-}
 # TODO - update to check for tracefs fs
 echo -n "[+] Checking for ftrace support ..."
-mount |grep -q -w debugfs || {
+sudo mount |grep -q -w debugfs || {
  echo "${name}: debugfs filesystem not mounted? Aborting..."
  exit 2
 }
-TRCMNT=$(mount |grep -w debugfs |awk '{print $3}')
+TRCMNT=$(sudo mount |grep -w debugfs |awk '{print $3}')
 export TRCMNT=${TRCMNT}/tracing
-[ ! -d "${TRCMNT}" ] && {
- echo "${name}: ${TRCMNT} not mounted as debugfs? Aborting..."
+#[ ! -d "${TRCMNT}" ] && {
+sudo ls ${TRCMNT} >/dev/null 2>&1
+if [ $? -ne 0 ] ; then
+ echo "${name}: ${TRCMNT} not pseudo-file not available? Aborting..."
  exit 2
-}
+fi
 echo " [OK] (ftrace loc: ${TRCMNT})"
 
 echo -n "[+] Checking for trace-cmd with function_graph plugin support, pl wait ..."
@@ -67,11 +69,11 @@ which trace-cmd >/dev/null 2>&1 || {
   exit 1
 }
 #-------------- test for the 'function_graph' plugin support
-trace-cmd record -p function_graph -l kmem_cache_alloc -F true / >/dev/null 2>&1 || {
+sudo trace-cmd record -p function_graph -l kmem_cache_alloc -F true / >/dev/null 2>&1 || {
   echo "${name}: trace-cmd didn't work with the function-graph plugin, aborting..."
   exit 2
 }
-rm -f trace.dat 2>/dev/null
+sudo rm -f trace.dat 2>/dev/null
 echo " [OK]"
 
 #------------------ RECORD
@@ -92,12 +94,12 @@ fi
 
 echo "[+] Recording now ...(binary ftrace file is ${TRC_FILE_BINARY}; [options: \"${OPTS_RECORD}\"]"
 if [ $# -ge 1 ] ; then
-  trace-cmd record ${OPTS_RECORD} -c -F "$@"
+  sudo trace-cmd record ${OPTS_RECORD} -c -F "$@"
   #trace-cmd record -p function_graph -o "${TRC_FILE_BINARY}" -c -F "$@"
    # -F: trace only this executable
    # -c: ...along with it's children, if any
 else
-  trace-cmd record ${OPTS_RECORD}
+  sudo trace-cmd record ${OPTS_RECORD}
   #trace-cmd record -q -p function_graph -o "${TRC_FILE_BINARY}"
 fi
 
@@ -110,6 +112,7 @@ ls "${TRC_FILE_BINARY}" >/dev/null || {
   echo "${name}: 'trace-cmd record' failed, no binary trace file, aborting ..."
   exit 5
 }
+sudo chown ${USER}:${USER} ${TRC_FILE_BINARY}
 
 #------------------ REPORT
 echo "[+] Generating the trace-cmd report now ..."

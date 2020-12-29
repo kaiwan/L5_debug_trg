@@ -1,8 +1,0 @@
-# config.trccmd
-#--- Configs for the trccmd convenience script
-TRC_FILE=/tmp/trc.txt
-
-QUIET_MODE=1
-DONT_REPORT_IRQCTX=1  # filter out all interrupt context funcs from the final report
-SHOW_PARAMETERS=1
-

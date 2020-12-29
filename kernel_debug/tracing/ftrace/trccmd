@@ -55,7 +55,6 @@ sudo mount |grep -q -w debugfs || {
 }
 TRCMNT=$(sudo mount |grep -w debugfs |awk '{print $3}')
 export TRCMNT=${TRCMNT}/tracing
-#[ ! -d "${TRCMNT}" ] && {
 sudo ls ${TRCMNT} >/dev/null 2>&1
 if [ $? -ne 0 ] ; then
  echo "${name}: ${TRCMNT} not pseudo-file not available? Aborting..."
@@ -95,15 +94,12 @@ fi
 echo "[+] Recording now ...(binary ftrace file is ${TRC_FILE_BINARY}; [options: \"${OPTS_RECORD}\"]"
 if [ $# -ge 1 ] ; then
   sudo trace-cmd record ${OPTS_RECORD} -c -F "$@"
-  #trace-cmd record -p function_graph -o "${TRC_FILE_BINARY}" -c -F "$@"
    # -F: trace only this executable
    # -c: ...along with it's children, if any
 else
   sudo trace-cmd record ${OPTS_RECORD}
-  #trace-cmd record -q -p function_graph -o "${TRC_FILE_BINARY}"
 fi
 
-#trace-cmd record -q -p function_graph -o "${TRC_FILE_BINARY}"
 [ $? -ne 0 ] && {
   echo "${name}: 'trace-cmd record' failed, aborting ..."
   exit 4
@@ -125,9 +121,6 @@ OPTS_REPORT="-l -i "${TRC_FILE_BINARY}""
   echo ", *leaving out* interrupt contexts"
   OPTS_REPORT="${OPTS_REPORT} -I -S"
 }
-#  trace-cmd report -q -i "${TRC_FILE_BINARY}" -I -S -l > ${TRC_FILE}
-#else
-#  trace-cmd report -q -i "${TRC_FILE_BINARY}" -l > ${TRC_FILE}
 
 trace-cmd report ${OPTS_REPORT} > ${TRC_FILE}
 [ $? -ne 0 ] && {

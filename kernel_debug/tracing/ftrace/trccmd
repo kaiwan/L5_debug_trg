@@ -15,16 +15,24 @@
 # License: MIT
 name=$(basename "$0")
 
-#--- Configs
-TRC_FILE=/tmp/trc.txt
-DONT_REPORT_IRQCTX=1  # filter out all interrupt context funcs from the final report
+PDIR=$(which $0)
+[ -z "${PDIR}" ] && PDIR=.       # true if script isn't in PATH
+export PFX=$(dirname ${PDIR})    # dir in which this script and tools reside
+source ${PFX}/config.trccmd || {
+ echo "${name}: fatal: could not source file '${PFX}/config.trccmd', aborting..."
+ exit 1
+}
 
 usage()
 {
    echo "Usage: ${name} [program-to-ftrace-via-trace-cmd]
  Eg. sudo ./${name} ps -LA
  NOTE: this will perform an _exclusive_ ftrace of the provided app (ps in the above eg).
-If no program is provided as an argument, we shall trace-cmd(1) whatever's running."
+If no program is provided as an argument, we shall trace-cmd(1) whatever's running.
+
+Additionally, if you want to *see all function parameters and their runtime values*
+(useful!), ensure the variable SHOW_PARAMETERS is set to 1 in the config file
+${PFX}/config.trccmd (check it out, useful stuff)."
 }
 
 
@@ -55,30 +63,45 @@ export TRCMNT=${TRCMNT}/tracing
 }
 echo " [OK] (ftrace loc: ${TRCMNT})"
 
-echo -n "[+] Checking for trace-cmd with function_graph plugin support ..."
+echo -n "[+] Checking for trace-cmd with function_graph plugin support, pl wait ..."
 which trace-cmd >/dev/null 2>&1 || {
   echo "${name}: trace-cmd not installed (or not in PATH)?"
   exit 1
 }
-# test for the 'function_graph' plugin support
-trace-cmd record -p function_graph -l kmem_cache_alloc -F ls / >/dev/null 2>&1 || {
+#-------------- test for the 'function_graph' plugin support
+trace-cmd record -p function_graph -l kmem_cache_alloc -F true / >/dev/null 2>&1 || {
   echo "${name}: trace-cmd didn't work with the function-graph plugin, aborting..."
   exit 2
 }
 rm -f trace.dat 2>/dev/null
 echo " [OK]"
 
+#------------------ RECORD
 TRC_FILE_BINARY=trc.dat
 [ $# -ge 1 ] && TRC_FILE_BINARY=$(basename "$1")_trc.dat
 #echo "TRC_FILE_BINARY = ${TRC_FILE_BINARY}"
-echo "[+] Recording now ...(binary ftrace file is ${TRC_FILE_BINARY})"
+
+OPTS_RECORD="-o "${TRC_FILE_BINARY}""
+[ ${QUIET_MODE} -eq 1 ] && OPTS_RECORD="${OPTS_RECORD} -q"
+if [ ${SHOW_PARAMETERS} -eq 1 ] ; then
+  echo "Recording: showing parameters and their runtime values; will lose function-graph..."
+  OPTS_RECORD="${OPTS_RECORD} -e all"
+else
+  OPTS_RECORD="${OPTS_RECORD} -p function_graph"
+fi
+
+echo "[+] Recording now ...(binary ftrace file is ${TRC_FILE_BINARY}; [options: \"${OPTS_RECORD}\"]"
 if [ $# -ge 1 ] ; then
-  trace-cmd record -p function_graph -o "${TRC_FILE_BINARY}" -c -F "$@"
+  trace-cmd record ${OPTS_RECORD} -c -F "$@"
+  #trace-cmd record -p function_graph -o "${TRC_FILE_BINARY}" -c -F "$@"
    # -F: trace only this executable
    # -c: ...along with it's children, if any
 else
-  trace-cmd record -p function_graph -o "${TRC_FILE_BINARY}"
+  trace-cmd record ${OPTS_RECORD}
+  #trace-cmd record -q -p function_graph -o "${TRC_FILE_BINARY}"
 fi
+
+#trace-cmd record -q -p function_graph -o "${TRC_FILE_BINARY}"
 [ $? -ne 0 ] && {
   echo "${name}: 'trace-cmd record' failed, aborting ..."
   exit 4
@@ -88,14 +111,22 @@ ls "${TRC_FILE_BINARY}" >/dev/null || {
   exit 5
 }
 
+#------------------ REPORT
 echo "[+] Generating the trace-cmd report now ..."
 echo -n "    Note: report done in latency format"
-if [ ${DONT_REPORT_IRQCTX} -eq 1 ] ; then
+OPTS_REPORT="-l -i "${TRC_FILE_BINARY}""
+ # -l : adds a "latency output" format
+ # -i : input file spec
+[ ${QUIET_MODE} -eq 1 ] && OPTS_REPORT="${OPTS_REPORT} -q"
+[ ${DONT_REPORT_IRQCTX} -eq 1 ] && {
   echo ", *leaving out* interrupt contexts"
-  trace-cmd report -i "${TRC_FILE_BINARY}" -I -S -l > ${TRC_FILE}
-else
-  trace-cmd report -i "${TRC_FILE_BINARY}" -l > ${TRC_FILE}
-fi
+  OPTS_REPORT="${OPTS_REPORT} -I -S"
+}
+#  trace-cmd report -q -i "${TRC_FILE_BINARY}" -I -S -l > ${TRC_FILE}
+#else
+#  trace-cmd report -q -i "${TRC_FILE_BINARY}" -l > ${TRC_FILE}
+
+trace-cmd report ${OPTS_REPORT} > ${TRC_FILE}
 [ $? -ne 0 ] && {
     echo "${name}: 'trace-cmd report' failed, aborting ..."
     exit 6

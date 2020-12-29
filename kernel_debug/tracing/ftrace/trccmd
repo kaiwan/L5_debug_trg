@@ -19,7 +19,11 @@ name=$(basename "$0")
  echo "${name}: Please don't run as root."
  exit 1
 }
-CONFIG=~/.local/bin/trccmd.config
+CONFIG=~/.local/trccmd.config
+if [ ! -f ${CONFIG} ] ; then
+   echo "${name}: very first run (?), initializing..."
+   cp ./trccmd.config ~/.local/
+fi
 source ${CONFIG} || {
  echo "${name}: fatal: could not source file '${CONFIG}', aborting..."
  exit 1

@@ -45,10 +45,10 @@
 #undef USE_FTRACE_PRINT
 
 #ifdef USE_FTRACE_PRINT
- #define DBGPRINT(string, args...) \
+#define DBGPRINT(string, args...) \
      trace_printk(string, ##args);
 #else
- #define DBGPRINT(string, args...) do {                 \
+#define DBGPRINT(string, args...) do {                 \
      int USE_RATELIMITING=1;                            \
 	 /* Not supposed to use printk_ratelimit() now.. */ \
 	 if (USE_RATELIMITING) {                            \
@@ -238,14 +238,12 @@ static inline void beep(int what)
  * Credits: Arkaitz Jimenez
  * http://stackoverflow.com/questions/1444428/time-stamp-in-the-c-programming-language
  */
-static int timeval_subtract(struct timeval *result, struct timeval *x,
-			    struct timeval *y);
+static int timeval_subtract(struct timeval *result, struct timeval *x, struct timeval *y);
 /* Subtract the `struct timeval' values X and Y,
     storing the result in RESULT.
     Return 1 if the difference is negative, otherwise 0.  */
-__attribute__ ((unused))
-int timeval_subtract(struct timeval *result, struct timeval *x,
-		     struct timeval *y)
+__attribute__((unused))
+int timeval_subtract(struct timeval *result, struct timeval *x, struct timeval *y)
 {
 	/* Perform the carry for the later subtraction by updating y. */
 	if (x->tv_usec < y->tv_usec) {
@@ -277,7 +275,7 @@ int timeval_subtract(struct timeval *result, struct timeval *x,
  * @binary  : the binary result as a string (OUT)
  *
  */
-__attribute__ ((unused))
+__attribute__((unused))
 static void dec2bin(long decimal, char *binary)
 {
 	int k = 0, n = 0;
@@ -313,8 +311,7 @@ static void dec2bin(long decimal, char *binary)
 		decimal = decimal / 2;
 		// this is a test to show the action
 #ifdef TESTMODE
-		printf("%d/2 = %d  remainder = %d\n", old_decimal, decimal,
-		       remain);
+		printf("%d/2 = %d  remainder = %d\n", old_decimal, decimal, remain);
 #endif
 		// converts digit 0 or 1 to character '0' or '1'
 		temp[k++] = remain + '0';

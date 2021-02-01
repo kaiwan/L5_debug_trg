@@ -25,7 +25,8 @@ if [ ! -f ${CONFIG} ] ; then
    cp ./trccmd.config ~/.local/
 fi
 source ${CONFIG} || {
- echo "${name}: fatal: could not source file '${CONFIG}', aborting..."
+ echo "${name}: fatal: could not source file '${CONFIG}', aborting...
+(Please ensure you 'git clone' the full repo to get the config file as well!)"
  exit 1
 }
 
@@ -52,7 +53,7 @@ if [ $# -ge 1 ] ; then
 fi
 
 # TODO - update to check for tracefs fs
-echo -n "[+] Checking for ftrace support ..."
+echo "[+] Checking for ftrace support ..."
 sudo mount |grep -q -w debugfs || {
  echo "${name}: debugfs filesystem not mounted? Aborting..."
  exit 2

@@ -1,0 +1,29 @@
+man strip
+
+...
+ --only-keep-debug
+          Strip a file, emptying the contents of any sections that would not be stripped by
+ --strip-debug and leaving the debugging sections intact.  In ELF files, this
+ preserves all the note sections in the output as well.
+
+           Note - the section headers of the stripped sections are preserved, including their sizes, but the contents of the section are discarded.  The section headers are
+preserved so that other tools can match up the debuginfo file with the real
+executable, even if that executable has been relocated to a different address
+space.
+
+           The intention is that this option will be used in conjunction with
+          --add-gnu-debuglink to create a two part executable.  One a stripped binary which
+           will occupy less space in RAM and in a distribution and the second a debugging
+           information file which is only needed if debugging abilities are required.
+...
+
+ You could instead do this:
+
+           1.<Link the executable as normal.>
+           1.<Copy "foo" to "foo.full">
+           1.<Run "strip --strip-debug foo">
+           1.<Run "objcopy --add-gnu-debuglink=foo.full foo">
+
+           i.e., the file pointed to by the --add-gnu-debuglink can be the full executable.
+           It does not have to be a file created by the --only-keep-debug switch.
+

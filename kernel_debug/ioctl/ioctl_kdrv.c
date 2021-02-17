@@ -77,12 +77,12 @@ static int iok_ioctl(struct inode *ino, struct file *filp, unsigned int cmd, uns
 		case IOCTL_KDRV_IOCQPOWER: /* Get: arg is pointer to result */
 			MSG ("In option: IOCTL_KDRV_IOCQPOWER\n\
 arg=0x%x (drv) power=%d\n", (unsigned int)arg, power);
-			if (!capable (CAP_SYS_ADMIN))
+			if (!capable(CAP_SYS_ADMIN))
 				return -EPERM;
-			retval = __put_user (power, (int __user *)arg);
+			retval = __put_user(power, (int __user *)arg);
 			break;
 		case IOCTL_KDRV_IOCSPOWER: /* Tell: arg is the value to set */
-			if (!capable (CAP_SYS_ADMIN))
+			if (!capable(CAP_SYS_ADMIN))
 				return -EPERM;
 			power = arg;
 			MSG ("In option: IOCTL_KDRV_IOCSPOWER\n\

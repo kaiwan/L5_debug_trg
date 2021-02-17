@@ -17,9 +17,9 @@
 #define	DRVNAME		"debugfs_simple"
 
 #define DBGFS_CREATE_ERR(pDentry, str) do {                   \
-	printk("%s: failed.\n", str);                         \
+	pr_err("%s: failed.\n", str);                         \
 	if (PTR_ERR(pDentry) == -ENODEV)                      \
-		printk(" debugfs support not available?\n");  \
+		pr_warn(" debugfs support not available?\n");  \
 	debugfs_remove_recursive(pDentry);	              \
 	return PTR_ERR(pDentry);                              \
 } while (0)
@@ -135,14 +135,14 @@ static int setup_debugfs_entries(void)
        4th param is a generic void * ptr; it's contents will be stored into the i_private field
 	   of the file's inode.
 	*/
-	mine = (MYS *)kmalloc (sizeof(MYS), GFP_KERNEL);
-	if (!mine) {
-		printk(KERN_ALERT "%s: kmalloc failed!\n", DRVNAME);
+	mine = (MYS *)kmalloc(sizeof(MYS), GFP_KERNEL);
+	if (unlikely(!mine)) {
+		printk(KERN_ALERT "%s: kmalloc failed!\n", DRVNAME); // pedantic
 		return -ENOMEM;
 	}
 	mine->tx = mine->rx = 0;
 	mine->j = jiffies;
-	strncpy (mine->sec, "Security Proto 1B", 20);
+	strncpy(mine->sec, "Security Proto 1B", 20);
 	if (!debugfs_create_file("generic_2", 0440, parent, (void *)mine, &dbg_fops2)) {
 		DBGFS_CREATE_ERR(parent, "debugfs_create_file 2");
 	}
@@ -219,7 +219,7 @@ static int debugfs_init(void)
 
 static void debugfs_exit(void)
 {
-	kfree (mine);
+	kfree(mine);
 	debugfs_remove_recursive(parent);
 	MSG("Done.\n");
 }

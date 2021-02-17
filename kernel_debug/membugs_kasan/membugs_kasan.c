@@ -5,7 +5,7 @@
  *
  * IMP::
  *  By default, KASAN will turn off after the very first error encountered;
- *  can change this behavior (and therefore test more easily, instead of 
+ *  can change this behavior (and therefore test more easily, instead of
  *  constantly rebooting) by passing the kernel parameter kasan_multi_shot
  *  on the kernel cmd line.
  ****************************************************************
@@ -27,9 +27,9 @@ MODULE_VERSION("0.1");
 #define NUM  2048
 
 #define FATAL(errmsg, ern) do {       \
- pr_warn("%s: Fatal Error! \"%s\"\n", \
-        OURMODNAME, errmsg);          \
-        return ern;                   \
+	pr_warn("%s: Fatal Error! \"%s\"\n", \
+		OURMODNAME, errmsg);          \
+		return ern;                   \
 } while (0)
 
 static int testcase;
@@ -51,17 +51,17 @@ MODULE_PARM_DESC(testcase, " Test case to run ::\n\
 /*
  * Legend (CSV) ::
  *   test case, KASAN catches it?, slub_debug= catches it?, vanilla kernel catches it?
- 
- *	" test case  1 : uninitialized var test case\n" , N, 
-	" test case  2 : out-of-bounds : write overflow [on compile-time memory]\n", N, 
-	" test case  3 : out-of-bounds : write overflow [on dynamic memory]\n", Y, 
-	" test case  4 : out-of-bounds : write underflow\n", Y, 
+
+ *	" test case  1 : uninitialized var test case\n" , N,
+	" test case  2 : out-of-bounds : write overflow [on compile-time memory]\n", N,
+	" test case  3 : out-of-bounds : write overflow [on dynamic memory]\n", Y,
+	" test case  4 : out-of-bounds : write underflow\n", Y,
 	" test case  5 : out-of-bounds : read overflow [on compile-time memory]\n", Y,
 	" test case  6 : out-of-bounds : read overflow [on dynamic memory]\n", Y,
-	" test case  7 : out-of-bounds : read underflow\n", Y, 
+	" test case  7 : out-of-bounds : read underflow\n", Y,
 	" test case  8 : UAF (use-after-free) test case\n", Y,
 	" test case  9 : UAR (use-after-return) test case\n", N,
-	" test case 10 : double-free test case\n", Y, 
+	" test case 10 : double-free test case\n", Y,
 	" test case 11 : memory leak test case: simple leak\n", N,
  */
 
@@ -190,15 +190,18 @@ static void oob_write_overflow_dynmem(char **p, int sz)
 static void oob_write_overflow_compilemem(void)
 {
 	int i, arr[5], arr2[7];
+	static int s_arr[5], s_arr2[10];
 
 	pr_info
 	    ("** Test case :: OOB write overflow compile-mem [func %s()] **\n",
 	     __func__);
 	//for (i = 0; i <= 5; i++) {
-	for (i = 0; i <= 50; i++) {
+	//for (i = 0; i <= 50; i++) {
+	for (i = 0; i <= 5000; i++) {
 		arr[i] = 100;	/* Bug: 'arr' overflows on i==5,
 				   overwriting part of the 'arr2'
 				   variable - a stack overflow! */
+		s_arr[i] = 200;
 	}
 }
 
@@ -221,10 +224,13 @@ static void *init(void)
 
 	kp = kvmalloc(NUM, GFP_KERNEL);
 	if (!kp) {
-		pr_warn("%s: kmalloc failed!\n", OURMODNAME);
+		pr_warn("%s: kmalloc failed!\n", OURMODNAME); // pedantic..
 		return ERR_PTR(-ENOMEM);
 	}
-	pr_debug("kp = 0x%lx\n", kp);
+	pr_debug("kp = 0x%px\n", kp);
+		/* NOTE : Security warning via checkpatch:
+WARNING: Using vsprintf specifier '%px' potentially exposes the kernel memory layout, if you don't really need the address please consider using '%p'."
+		*/
 #if 0
 	pr_info(" kp = %lx; dumping first 32 bytes Before init...\n", kp);
 	print_hex_dump_bytes("kp: ", DUMP_PREFIX_OFFSET, kp, 32);
@@ -244,7 +250,7 @@ static int __init membugs_kasan_init(void)
 	char *kp = NULL, *res;
 
 	pr_debug("%s: inserted; testcase = %d\n", OURMODNAME, testcase);
-	if (0 == testcase) {
+	if (testcase == 0) {
 		pr_info
 		    ("%s: requires the module parameter 'testcase' to be passed. Aborting...\n",
 		     OURMODNAME);

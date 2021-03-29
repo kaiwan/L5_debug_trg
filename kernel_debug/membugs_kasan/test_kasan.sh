@@ -3,7 +3,8 @@ name=$(basename $0)
 KMOD=membugs_kasan
 
 [ ! -f ${KMOD}.ko ] && {
-  echo "${name}: kernel module \"${KMOD}.ko\" not present? Aborting ..."
+  echo "${name}: kernel module \"${KMOD}.ko\" not present? Aborting ...
+  Build it & retry..."
   exit 1
 }
 ls -l ${KMOD}.ko

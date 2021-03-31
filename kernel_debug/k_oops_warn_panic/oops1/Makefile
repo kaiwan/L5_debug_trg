@@ -21,12 +21,12 @@ build:
 install:
 	$(MAKE) -C $(KDIR) M=$(PWD) modules_install
 clean:
-	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) clean
+	$(MAKE) -C $(KDIR) M=$(PWD) clean
 
 else
 
 $(info Building with KERNELRELEASE = ${KERNELRELEASE}) 
-EXTRA_CFLAGS += -DDEBUG
+EXTRA_CFLAGS += -DDEBUG -g
 obj-m := oops1.o  
 
 endif

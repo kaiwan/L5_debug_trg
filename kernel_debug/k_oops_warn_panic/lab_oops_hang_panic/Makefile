@@ -20,7 +20,7 @@ endif
 $(info Building for ARCH ${ARCH}, KERNELRELEASE ${KERNELRELEASE} and CROSS_COMPILE=${CROSS_COMPILE})
 	PWD         := $(shell pwd)
 default:
-	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules
+	$(MAKE) -C $(KDIR) M=$(PWD) modules
 clean:
-	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) clean
+	$(MAKE) -C $(KDIR) M=$(PWD) clean
 endif

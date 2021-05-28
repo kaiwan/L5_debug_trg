@@ -39,7 +39,7 @@ If no program is provided as an argument, we shall trace-cmd(1) whatever's runni
 
 Additionally, if you want to *see all function parameters and their runtime values*
 (useful!), ensure the variable SHOW_PARAMETERS is set to 1 in the config file
-${PFX}/config.trccmd (check it out, useful stuff)."
+${CONFIG}/config.trccmd (check it out, useful stuff)."
 }
 
 

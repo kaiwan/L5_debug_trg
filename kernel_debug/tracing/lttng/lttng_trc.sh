@@ -19,8 +19,8 @@ name=$(basename $0)
 die()
 {
 	echo "
-	*** Fatal ***"
-	echo $@
+	*** Fatal ***
+$@"
 	exit 1
 }
 
@@ -46,8 +46,9 @@ ls -lh ${TARBALL}*
 }
 
 ## "main" here
+which lttng >/dev/null || die "lttng not installed?"
 [ $(id -u) -ne 0 ] && {
- echo "${name}: Need to be root."
+ echo "${name}: need to be root."
  exit 1
 }
 
@@ -64,7 +65,6 @@ ls -lh ${TARBALL}*
 
 echo "Session name :: \"$1\""
 echo -n "[+] (Minimal) Checking for LTTng support ... "
-which lttng >/dev/null || die "lttng not installed?"
 lsmod |grep -q "^lttng_" || die "lttng kernel modules not seen"
 echo "[OK]"
 
@@ -73,7 +73,7 @@ echo "[OK]"
 SESSION=${SESSION}_$1_$(date +%d%b%y_%H%M)
 TRC_OUT_DIR=${TRC_OUT_DIR}/${SESSION}
 echo "[+] lttng create ${SESSION} --output=${TRC_OUT_DIR}"
-lttng create ${SESSION} --output=${TRC_OUT_DIR}
+lttng create ${SESSION} --output=${TRC_OUT_DIR} || die "lttng create failed"
 
 # WARNING! Big trace files with ALL kernel events
 echo "[+] lttng enable events ..."

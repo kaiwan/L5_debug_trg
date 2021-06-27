@@ -141,8 +141,9 @@ static void oob_read_underflow(char **p, int sz)
 	pr_info
 	    ("** Test case :: OOB read underflow  dynamic-mem [func %s()] **\n",
 	     __func__);
-	pr_debug("*p = 0x%lx\n", *p);
-	pr_info("reading at kva 0x%lx+%+d : 0x%x\n", *p, sz, *(*p + sz));	// sz is passed as -ve
+	pr_debug("*p = %p\n", (void *)*p);
+	//pr_debug("*p = 0x%lx\n", (void *)*p);
+	pr_info("reading at kva %p+%+d : 0x%x\n", (void *)*p, sz, *(*p + sz));	// sz is passed as -ve
 }
 
 static void oob_read_overflow_dynmem(char **p, int sz)
@@ -150,8 +151,8 @@ static void oob_read_overflow_dynmem(char **p, int sz)
 	pr_info
 	    ("** Test case :: OOB read overflow dynamic-mem [func %s()] **\n",
 	     __func__);
-	pr_debug("*p = 0x%lx\n", *p);
-	pr_info("reading at kva 0x%lx+%+d : 0x%x\n", *p, sz, *(*p + sz));	// sz is passed as +ve
+	pr_debug("*p = %p\n", (void *)*p);
+	pr_info("reading at kva %p+%+d : 0x%x\n", (void *)*p, sz, *(*p + sz));	// sz is passed as +ve
 }
 
 static void oob_read_overflow_compilemem(void)
@@ -173,7 +174,7 @@ static void oob_write_underflow(char **p, int sz)
 	pr_info
 	    ("** Test case :: OOB write underflow  dynamic-mem [func %s()] **\n",
 	     __func__);
-	pr_debug("*p = 0x%lx\n", *p);
+	pr_debug("*p = %p\n", (void *)*p);
 	memset(*p + sz, 0xab, 32);	// parameter 'sz' is passed as -ve
 }
 
@@ -182,7 +183,7 @@ static void oob_write_overflow_dynmem(char **p, int sz)
 	pr_info
 	    ("** Test case :: OOB write underflow dynamic-mem [func %s()] **\n",
 	     __func__);
-	pr_debug("*p = 0x%lx\n", *p);
+	pr_debug("*p = %p\n", (void *)*p);
 	memset(*p, 0xab, NUM + sz);
 }
 

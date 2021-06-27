@@ -90,7 +90,7 @@ init_ftrc()
  exit 1
 }
 
-trap 'reset_ftrc' INT QUIT
+trap 'reset_ftrc' INT QUIT EXIT
 
 # TODO: >= 4.1 it's become the 'tracefs' filesystem!
 echo -n "[+] Checking for ftrace support ..."
@@ -159,8 +159,8 @@ echo 1 > ${TRCMNT}/tracing_on ; sudo taskset -c 0 "$@" ; echo 0 > ${TRCMNT}/trac
  #echo 1 > ${TRCMNT}/tracing_on ; eval "$@" ; echo 0 > ${TRCMNT}/tracing_on
 
 echo "[+] ${name}: Setting up full tracing report \"${TRC_FILE}\", pl wait ..."
-cp ${TRCMNT}/per_cpu/cpu0/trace ${TRC_FILE}
-cp ${TRCMNT}/per_cpu/cpu0/stats ${TRC_FILE}.stats
+[ -s ${TRCMNT}/per_cpu/cpu0/trace ] && cp ${TRCMNT}/per_cpu/cpu0/trace ${TRC_FILE}
+[ -s ${TRCMNT}/per_cpu/cpu0/stats ] && cp ${TRCMNT}/per_cpu/cpu0/stats ${TRC_FILE}.stats
 sync
 echo "[+] ${name}: Done. Full trace file in ${TRC_FILE} (stats in ${TRC_FILE}.stats)"
 ls -lh ${TRC_FILE}*
@@ -178,8 +178,8 @@ prg="$@"
 prg2=$(echo "${prg}" |awk '{print $1}')
 prgname=$(basename ${prg2})
 echo "[+] ${name}: now generating *filtered* trace report for process/thread \"${prgname}\" only ... "
-egrep "^ [0-9]) * ${prgname}[- ]" ${TRC_FILE} > trc_${prgname}.txt
-#grep "^ [0-9]).*${prgname}" ${TRC_FILE} > trc_${prgname}.txt
+egrep "^ [0-9]+) * ${prgname}[- ]" ${TRC_FILE} > trc_${prgname}.txt
+#grep "^ [0-9]+).*${prgname}" ${TRC_FILE} > trc_${prgname}.txt
 
 sz=$(stat trc_${prgname}.txt |grep "Size:"|awk  '{print $2}')
 if [ ${sz} -eq 0 ] ; then

@@ -35,7 +35,7 @@ static ssize_t dbgfs_genread(struct file *filp, char __user *ubuf, size_t count,
 {
 	char *data =  (char *)filp->f_inode->i_private; // retrieve the "data" from the inode
 	//char *data =  (char *)filp->f_dentry->d_inode->i_private; // [OLD] retrieve the "data" from the inode
-	MSG("data: %s len=%ld\n", data, strlen(data));
+	MSG("data: %s len=%d\n", data, strlen(data));
 
 	/* simple_read_from_buffer - copy data from the buffer to user space:
      * @to: the user space buffer to read to
@@ -62,12 +62,12 @@ static ssize_t dbgfs_genwrite(struct file *filp, const char __user *ubuf, size_t
 	char udata[MAXUPASS];
 	QP;
 	if (count > MAXUPASS) {
-		printk("%s: too much data attempted to be passed from userspace to here: %s:%d\n", 
+		pr_warn("%s: too much data attempted to be passed from userspace to here: %s:%d\n", 
 			DRVNAME, __FUNCTION__, __LINE__);
 		return -ENOSPC;
 	}
 	if (copy_from_user(udata, ubuf, count)) {
-		printk("%s:%s:%d: copy_from_user failed!\n", 
+		pr_warn("%s:%s:%d: copy_from_user failed!\n", 
 			DRVNAME, __FUNCTION__, __LINE__);
 		return -EIO;
 	}
@@ -154,16 +154,10 @@ static int setup_debugfs_entries(void)
 				      struct dentry *parent, u32 *value); 
 	  ...
     */
-	if (!debugfs_create_u32("helper_u32", 0644, parent, &myu32)) {
-		DBGFS_CREATE_ERR(parent, "debugfs_create_u32 ");
-	}
-	if (!debugfs_create_u64("helper_u64", 0644, parent, &myu64)) {
-		DBGFS_CREATE_ERR(parent, "debugfs_create_u64 ");
-	}
+	debugfs_create_u32("helper_u32", 0644, parent, &myu32);
+	debugfs_create_u64("helper_u64", 0644, parent, &myu64);
 	// For hex, use the debugfs_create_x[8|16|32|64] helpers...
-	if (!debugfs_create_x32("helper_x32", 0644, parent, &myx32)) {
-		DBGFS_CREATE_ERR(parent, "debugfs_create_x32 ");
-	}
+	debugfs_create_x32("helper_x32", 0644, parent, &myx32);
 
 	/* 4. Boolean values can be placed in debugfs with:
 

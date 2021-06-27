@@ -24,7 +24,8 @@ if [ -f /boot/config-$(uname -r) ] ; then
   fi
 elif [ -f /proc/config.gz ] ; then
   zcat /proc/config.gz | grep -q "CONFIG_KASAN is not set" && {
-    echo "${name}: this kernel (ver $(uname -r)) doesn't seem to have CONFIG_KASAN configured... aborting"
+    echo "${name}: this kernel (ver $(uname -r)) doesn't seem to have CONFIG_KASAN configured... aborting.
+  Please configure this or a custom kernel with CONFIG_KASAN and retry ..."
     exit 1
   }
   if [ -f /proc/config.gz ] ; then
@@ -36,7 +37,8 @@ elif [ -f /proc/config.gz ] ; then
 else
   sudo modprobe configs
   zcat /proc/config.gz | grep -q "CONFIG_KASAN is not set" && {
-    echo "${name}: this kernel (ver $(uname -r)) doesn't seem to have CONFIG_KASAN configured... aborting"
+    echo "${name}: this kernel (ver $(uname -r)) doesn't seem to have CONFIG_KASAN configured... aborting.
+  Please configure this or a custom kernel with CONFIG_KASAN and retry ..."
     exit 1
   }
   if [ -f /proc/config.gz ] ; then
@@ -47,7 +49,7 @@ else
 	  #echo "CONFIG_KASAN is set"
 fi
 [ ${kconfig_chk} -eq 0 ] && {
-  echo "${name}: no kernel config to check... CONFIG_KASAN is NOT enabled ? Aborting ...
+    echo "${name}: this kernel (ver $(uname -r)) doesn't seem to have CONFIG_KASAN configured... aborting.
   Please configure this or a custom kernel with CONFIG_KASAN and retry ..."
   exit 1
 } || echo "CONFIG_KASAN is set"

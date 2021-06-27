@@ -11,17 +11,18 @@
 name=$(basename $0)
 KMOD=membugs_kasan
 
+echo -n "$(uname -r): "
 # this kernel built w/ CONFIG_KASAN on?
 if [ -f /boot/config-$(uname -r) ] ; then
   grep -q "CONFIG_KASAN is not set" /boot/config-$(uname -r) && {
     echo "${name}: this kernel (ver $(uname -r)) doesn't seem to have CONFIG_KASAN configured... aborting"
     exit 1
-  }
+  } || echo "CONFIG_KASAN is set"
 elif [ -f /proc/config.gz ] ; then
   zcat /proc/config.gz | grep -q "CONFIG_KASAN is not set" && {
     echo "${name}: this kernel (ver $(uname -r)) doesn't seem to have CONFIG_KASAN configured... aborting"
     exit 1
-  }
+  } || echo "CONFIG_KASAN is set"
 else
   echo "${name}: no kernel config to check... assuming CONFIG_KASAN is enabled ?"
 fi

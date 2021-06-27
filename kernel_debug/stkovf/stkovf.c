@@ -1,3 +1,12 @@
+/*
+ * stkovf.c
+ * Deliberately - and pretty much fatally - overflow the kernel-mode stack !
+ *
+ * V-mapped stacks make it a bit better... the kernel at least manages to say
+ * (something like):
+ kernel:[ 1056.186494] Kernel panic - not syncing: corrupted stack end detected inside scheduler
+ * grep CONFIG_HAVE_ARCH_VMAP_STACK=y /boot/config-5.4.0-llkd-dbg
+ */
 #define pr_fmt(fmt) "%s:%s(): " fmt, KBUILD_MODNAME, __func__
 
 #include <linux/init.h>

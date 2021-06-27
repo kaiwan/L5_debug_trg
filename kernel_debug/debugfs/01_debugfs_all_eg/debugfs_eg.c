@@ -8,6 +8,7 @@
  */
 #include <linux/init.h>
 #include <linux/module.h>
+#include <linux/sched.h>   // for current
 #include <linux/debugfs.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
@@ -53,6 +54,7 @@ static ssize_t dbgfs_genread(struct file *filp, char __user *ubuf, size_t count,
          ssize_t simple_read_from_buffer(void __user *to, size_t count, loff_t *ppos,
                  const void *from, size_t available)
 	*/
+	pr_info("%s():%s:%d\n", __func__, current->comm, current->pid);
 	return simple_read_from_buffer(ubuf, strlen(data), fpos, data, strlen(data));
 }
 
@@ -135,9 +137,9 @@ static int setup_debugfs_entries(void)
        4th param is a generic void * ptr; it's contents will be stored into the i_private field
 	   of the file's inode.
 	*/
-	mine = (MYS *)kmalloc(sizeof(MYS), GFP_KERNEL);
+	mine = (MYS *)kzalloc(sizeof(MYS), GFP_KERNEL);
 	if (unlikely(!mine)) {
-		printk(KERN_ALERT "%s: kmalloc failed!\n", DRVNAME); // pedantic
+		pr_alert("%s: kmalloc failed!\n", DRVNAME); // pedantic
 		return -ENOMEM;
 	}
 	mine->tx = mine->rx = 0;

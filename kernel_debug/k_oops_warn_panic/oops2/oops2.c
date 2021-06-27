@@ -36,7 +36,7 @@ static int __init oops2_init(void)
 	f1 = kmalloc(sizeof(struct faker), GFP_KERNEL);
 	if (!f1)
 		return -ENOMEM;
-	MSG("sizeof(long) = %d, sizeof(struct faker) = %lu, actual space alloced = %lu\n",
+	MSG("sizeof(long) = %ld, sizeof(struct faker) = %lu, actual space alloced = %lu\n",
 	    sizeof(long), sizeof(struct faker), ksize(f1));
 #endif
 	MSG("Hello, about to Oops!\n");

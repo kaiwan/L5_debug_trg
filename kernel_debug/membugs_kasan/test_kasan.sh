@@ -10,6 +10,7 @@
 #  invalid access.
 name=$(basename $0)
 KMOD=membugs_kasan
+kconfig_chk=0
 
 # this kernel built w/ CONFIG_KASAN on?
 if [ -f /boot/config-$(uname -r) ] ; then
@@ -23,12 +24,20 @@ elif [ -f /proc/config.gz ] ; then
     exit 1
   }
 else
-  echo "${name}: no kernel config to check... assuming CONFIG_KASAN is enabled ?"
+  sudo modprobe configs
+  zcat /proc/config.gz | grep -q "CONFIG_KASAN is not set" && {
+    echo "${name}: this kernel (ver $(uname -r)) doesn't seem to have CONFIG_KASAN configured... aborting"
+    exit 1
+  }
+  kconfig_chk=1
 fi
+[ ${kconfig_chk} -eq 0 ] && {
+  echo "${name}: no kernel config to check... assuming CONFIG_KASAN is enabled ?"
+}
 
 [ ! -f ${KMOD}.ko ] && {
   echo "${name}: kernel module \"${KMOD}.ko\" not present? Aborting ...
-  Build it & retry...
+  Build it first and retry...
   Also, did you remember to boot the system with the kernel cmdline parameter
   'kasan_multi_shot'"
   exit 1
@@ -38,7 +47,7 @@ ls -l ${KMOD}.ko
 [ $# -ne 1 ] && {
  echo "Usage: ${name} testcase#"
  echo "
-	test case  1 : uninitialized var test case
+        test case  1 : uninitialized var (UMR) test case
 	test case  2 : out-of-bounds : write overflow [on compile-time memory]
 	test case  3 : out-of-bounds : write overflow [on dynamic memory]
 	test case  4 : out-of-bounds : write underflow

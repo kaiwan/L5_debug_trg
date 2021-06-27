@@ -4,6 +4,12 @@ name=$(basename $0)
 INTF=wlan0
 SENDTO_IP=192.168.1.101
 
+lsmod|grep -q netconsole && {
+  echo "${name}: netconsole already loaded"
+  exit 1
+}
+  
+
 # get IP address
 ip=$(ip a|grep  -w "${INTF}" |grep "^ *inet "|awk '{print $2}'|sed 's/...$//')
 [ -z "${ip}" ] && {

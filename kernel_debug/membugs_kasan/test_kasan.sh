@@ -58,7 +58,11 @@ fi
   echo "${name}: kernel module \"${KMOD}.ko\" not present? Aborting ...
   Build it first and retry...
   Also, did you remember to boot the system with the kernel cmdline parameter
-  'kasan_multi_shot'"
+  'kasan_multi_shot':
+   [KNL] Enforce KASAN (Kernel Address Sanitizer) to print
+                        report on every invalid memory access. Without this
+                        parameter KASAN will print report only for the first
+                        invalid access."
   exit 1
 }
 ls -l ${KMOD}.ko
@@ -79,7 +83,11 @@ ls -l ${KMOD}.ko
 	test case 11 : memory leak : simple leak
 
   Also, did you remember to boot the system with the kernel cmdline parameter
-  'kasan_multi_shot' "
+  'kasan_multi_shot':
+   [KNL] Enforce KASAN (Kernel Address Sanitizer) to print
+                        report on every invalid memory access. Without this
+                        parameter KASAN will print report only for the first
+                        invalid access."
  exit 1
 }
 

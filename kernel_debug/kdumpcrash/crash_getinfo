@@ -1,0 +1,27 @@
+echo "=== System Info ==="
+echo "--- sys ---"
+sys
+
+echo "--- log ---"
+log
+
+echo "--- ps ---"
+ps
+
+echo "--- dev ---"
+dev
+
+echo "=== Current Context Info ==="
+echo "--- bt -a ---"
+bt -a
+
+echo "--- files ---"
+files
+
+echo "--- vm ---"
+vm
+
+exit
+
+# Meant to be used like this:
+# sudo crash vmlinux_dbgsym.img {dumpfile.img -or- /proc/kcore} < crash_getinfo > report.txt

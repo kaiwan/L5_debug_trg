@@ -1,0 +1,41 @@
+crash
+
+Running the 'crash' demo - 'live' mode:
+
+1. Run the 'Seawolf-KNB' VM via VirtualBox
+2. Select the '5.4.1' kernel (can boot in runlevel 3)
+3. Simply run it:
+ $ sudo crash
+ ...
+ crash 7.2.8
+Copyright (C) 2002-2020  Red Hat, Inc.
+...
+GNU gdb (GDB) 7.6
+...
+This GDB was configured as "x86_64-unknown-linux-gnu"...
+
+WARNING: kernel relocated [28MB]: patching 104715 gdb minimal_symbol values
+
+      KERNEL: /lib/modules/5.4.1/build/vmlinux                         
+    DUMPFILE: /proc/kcore
+        CPUS: 4
+        DATE: Mon Jun 28 07:48:27 2021
+      UPTIME: 00:00:42
+LOAD AVERAGE: 0.43, 0.10, 0.03
+       TASKS: 237
+    NODENAME: seawolf-VirtualBox
+     RELEASE: 5.4.1
+     VERSION: #1 SMP Thu Mar 18 15:23:35 IST 2021
+     MACHINE: x86_64  (2591 Mhz)
+      MEMORY: 2 GB
+         PID: 1229
+     COMMAND: "crash"
+        TASK: ffffa0779ce8dc00  [THREAD_INFO: ffffa0779ce8dc00]
+         CPU: 0
+       STATE: TASK_RUNNING (ACTIVE)
+
+crash> 
+
+It locates the kernel vmlinux here:
+  /lib/modules/5.4.1/build/vmlinux 
+

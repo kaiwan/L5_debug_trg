@@ -6,6 +6,8 @@
  * Author: Kaiwan N Billimoria, kaiwanTECH
  * Dual GPL/MIT.
  */
+#define pr_fmt(fmt) "%s:%s(): " fmt, KBUILD_MODNAME, __func__
+
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/sched.h>   // for current
@@ -13,7 +15,7 @@
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 //#include <asm/uaccess.h> // [OLD]
-#include "../../convenient.h"
+//#include "../../convenient.h"
 
 #define	DRVNAME		"debugfs_simple"
 
@@ -36,7 +38,7 @@ static ssize_t dbgfs_genread(struct file *filp, char __user *ubuf, size_t count,
 {
 	char *data =  (char *)filp->f_inode->i_private; // retrieve the "data" from the inode
 	//char *data =  (char *)filp->f_dentry->d_inode->i_private; // [OLD] retrieve the "data" from the inode
-	MSG("data: %s len=%d\n", data, strlen(data));
+	pr_debug("data: %s len=%d\n", data, strlen(data));
 
 	/* simple_read_from_buffer - copy data from the buffer to user space:
      * @to: the user space buffer to read to
@@ -54,7 +56,7 @@ static ssize_t dbgfs_genread(struct file *filp, char __user *ubuf, size_t count,
          ssize_t simple_read_from_buffer(void __user *to, size_t count, loff_t *ppos,
                  const void *from, size_t available)
 	*/
-	pr_info("%s():%s:%d\n", __func__, current->comm, current->pid);
+	pr_info("%s:%d\n", current->comm, current->pid);
 	return simple_read_from_buffer(ubuf, strlen(data), fpos, data, strlen(data));
 }
 
@@ -62,15 +64,12 @@ static ssize_t dbgfs_genread(struct file *filp, char __user *ubuf, size_t count,
 static ssize_t dbgfs_genwrite(struct file *filp, const char __user *ubuf, size_t count, loff_t *fpos)
 {
 	char udata[MAXUPASS];
-	QP;
 	if (count > MAXUPASS) {
-		pr_warn("%s: too much data attempted to be passed from userspace to here: %s:%d\n", 
-			DRVNAME, __FUNCTION__, __LINE__);
+		pr_warn("Too much data attempted to be passed from userspace to here\n");
 		return -ENOSPC;
 	}
 	if (copy_from_user(udata, ubuf, count)) {
-		pr_warn("%s:%s:%d: copy_from_user failed!\n", 
-			DRVNAME, __FUNCTION__, __LINE__);
+		pr_warn("copy_from_user failed!\n");
 		return -EIO;
 	}
 	print_hex_dump_bytes(" ", DUMP_PREFIX_NONE, udata, count);
@@ -93,11 +92,11 @@ static MYS *mine;
 static ssize_t dbgfs_genread2(struct file *filp, char __user *ubuf, size_t count, loff_t *fpos)
 {
 	MYS *data =  (MYS *)filp->f_inode->i_private; // retrieve the "data" from the inode
-	//MYS *data =  (MYS *)filp->f_dentry->d_inode->i_private; // retrieve the "data" from the inode
+	//MYS *data =  (MYS *)filp->f_dentry->d_inode->i_private; // OLDER:retrieve the "data" from the inode
 	char loc[MAXUPASS];
 
 	data->j = jiffies;
-	MSG("data: tx=%d rx=%d j=%u sec=%s\n", data->tx, data->rx, data->j, data->sec);
+	pr_debug("data: tx=%d rx=%d j=%u sec=%s\n", data->tx, data->rx, data->j, data->sec);
 	snprintf(loc, count-1, "data: tx=%d rx=%d j=%u sec=%s\n", data->tx, data->rx, data->j, data->sec);
 	return simple_read_from_buffer(ubuf, MAXUPASS, fpos, loc, strlen(loc));
 }
@@ -119,7 +118,6 @@ static struct debugfs_blob_wrapper myblob;
 //-----------------------------------------------------------------------------
 static int setup_debugfs_entries(void)
 {
-	QP;
 	parent = debugfs_create_dir(DRVNAME, NULL);
 	if (!parent) {
 		DBGFS_CREATE_ERR(parent, "debugfs_create_dir");
@@ -139,7 +137,7 @@ static int setup_debugfs_entries(void)
 	*/
 	mine = (MYS *)kzalloc(sizeof(MYS), GFP_KERNEL);
 	if (unlikely(!mine)) {
-		pr_alert("%s: kmalloc failed!\n", DRVNAME); // pedantic
+		pr_alert("kmalloc failed!\n"); // pedantic
 		return -ENOMEM;
 	}
 	mine->tx = mine->rx = 0;
@@ -155,7 +153,7 @@ static int setup_debugfs_entries(void)
       struct dentry *debugfs_create_u32(const char *name, mode_t mode,
 				      struct dentry *parent, u32 *value); 
 	  ...
-    */
+	*/
 	debugfs_create_u32("helper_u32", 0644, parent, &myu32);
 	debugfs_create_u64("helper_u64", 0644, parent, &myu64);
 	// For hex, use the debugfs_create_x[8|16|32|64] helpers...
@@ -169,7 +167,7 @@ static int setup_debugfs_entries(void)
        A read on the resulting file will yield either Y (for non-zero values) or
        N, followed by a newline.  If written to, it will accept either upper- or
        lower-case values, or 1 or 0.  Any other input will be silently ignored.
-     */
+	*/
 	if (!debugfs_create_bool("helper_bool", 0644, parent, &mybool)) {
 		DBGFS_CREATE_ERR(parent, "debugfs_create_bool ");
 	}
@@ -208,8 +206,7 @@ static int setup_debugfs_entries(void)
 static int debugfs_init(void)
 {
 	setup_debugfs_entries();
-	pr_info("%s: sample debugfs entries setup at: <debugfs_mount>/%s\n",
-			DRVNAME, DRVNAME);
+	pr_info("sample debugfs entries setup at: <debugfs_mount>/%s\n", DRVNAME);
 	return 0;
 }
 
@@ -217,7 +214,7 @@ static void debugfs_exit(void)
 {
 	kfree(mine);
 	debugfs_remove_recursive(parent);
-	MSG("Done.\n");
+	pr_debug("Done.\n");
 }
 
 MODULE_LICENSE("Dual MIT/GPL");

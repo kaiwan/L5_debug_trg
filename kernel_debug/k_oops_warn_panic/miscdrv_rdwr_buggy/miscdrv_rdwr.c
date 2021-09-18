@@ -43,7 +43,7 @@
 #include <asm/uaccess.h>
 #endif
 
-#include "../../convenient.h"
+//#include "../../convenient.h"
 
 #define OURMODNAME   "miscdrv_rdwr"
 MODULE_AUTHOR("Kaiwan N Billimoria");
@@ -88,7 +88,7 @@ static int open_miscdrv_rdwr(struct inode *inode, struct file *filp)
 	if (unlikely(!buf))
 		return -ENOMEM;
 
-	PRINT_CTX();	// displays process (or atomic) context info
+//	PRINT_CTX();	// displays process (or atomic) context info
 	ga++;
 	gb--;
 	dev_info(dev, " opening \"%s\" now; wrt open file: f_flags = 0x%x\n",
@@ -114,7 +114,7 @@ static ssize_t read_miscdrv_rdwr(struct file *filp, char __user *ubuf,
 	struct device *dev = ctx->dev;
 	char tasknm[TASK_COMM_LEN];
 
-	PRINT_CTX();
+//	PRINT_CTX();
 	dev_info(dev, "%s wants to read (upto) %zu bytes\n", get_task_comm(tasknm, current), count);
 
 	ret = -EINVAL;
@@ -172,7 +172,7 @@ static ssize_t write_miscdrv_rdwr(struct file *filp, const char __user *ubuf,
 	struct device *dev = ctx->dev;
 	char tasknm[TASK_COMM_LEN];
 
-	PRINT_CTX();
+//	PRINT_CTX();
 	if (unlikely(count > MAXBYTES)) {	/* paranoia */
 		dev_warn(dev, "count %zu exceeds max # of bytes allowed, "
 			"aborting write\n", count);
@@ -236,7 +236,7 @@ static int close_miscdrv_rdwr(struct inode *inode, struct file *filp)
 	if (unlikely(!buf))
 		return -ENOMEM;
 
-	PRINT_CTX();		// displays process (or intr) context info
+//	PRINT_CTX();		// displays process (or intr) context info
 	ga--;
 	gb++;
 	dev_info(dev, " filename: \"%s\"\n", file_path(filp, buf, PATH_MAX));

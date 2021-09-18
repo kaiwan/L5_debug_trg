@@ -24,4 +24,4 @@ vm
 exit
 
 # Meant to be used like this:
-# sudo crash vmlinux_dbgsym.img {dumpfile.img -or- /proc/kcore} < crash_getinfo > report.txt
+# sudo crash /lib/modules/5.4.1/build/vmlinux {dumpfile.img -or- /proc/kcore} < crash_getinfo > report.txt

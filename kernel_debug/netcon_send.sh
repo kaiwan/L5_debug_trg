@@ -1,14 +1,21 @@
 #!/bin/bash
 # netcon_send.sh
 name=$(basename $0)
-INTF=wlan0
-SENDTO_IP=192.168.1.101
+
+#-------- KEEP UPDATED
+INTF=enp0s8
+#---------------------
+
+[ $# -ne 1 ] && {
+  echo "Usage: ${name} receiver-IP-address"
+  exit 1
+}
+SENDTO_IP="$1"
 
 lsmod|grep -q netconsole && {
   echo "${name}: netconsole already loaded"
   exit 1
 }
-  
 
 # get IP address
 ip=$(ip a|grep  -w "${INTF}" |grep "^ *inet "|awk '{print $2}'|sed 's/...$//')
@@ -27,6 +34,11 @@ sudo modprobe netconsole netconsole=@${ip}/${INTF},@${SENDTO_IP}/
 }
 echo "OK, netconsole LKM running ...
 Receive this system's kernel printk's by doing this on the receiver:
- netcat -d -u -l 6666"
+ netcat -d -u -l 6666
+
+(Can test with:
+sudo sh -c "echo \"Hello via netconsole\" > /dev/kmsg"
+)
+"
 #lsmod|grep netconsole
 exit 0

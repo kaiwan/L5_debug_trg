@@ -38,7 +38,7 @@ static ssize_t dbgfs_genread(struct file *filp, char __user *ubuf, size_t count,
 {
 	char *data =  (char *)filp->f_inode->i_private; // retrieve the "data" from the inode
 	//char *data =  (char *)filp->f_dentry->d_inode->i_private; // [OLD] retrieve the "data" from the inode
-	pr_debug("data: %s len=%d\n", data, strlen(data));
+	pr_debug("data: %s len=%ld\n", data, strlen(data));
 
 	/* simple_read_from_buffer - copy data from the buffer to user space:
      * @to: the user space buffer to read to

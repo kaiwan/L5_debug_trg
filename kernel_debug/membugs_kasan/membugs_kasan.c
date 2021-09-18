@@ -209,7 +209,9 @@ static void oob_write_overflow_compilemem(void)
 /* test case : UMR - uninitialized memory read - test case */
 static void umr(void)
 {
-	int x;
+	int x; /* v recent gcc does have the ability to detect this!
+	 warning: ‘x’ is used uninitialized in this function [-Wuninitialized]
+    */
 
 	if (x)
 		pr_info("%s(): true case: x=%d\n", __func__, x);

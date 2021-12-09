@@ -50,6 +50,7 @@ PID %d running on processor # %d\n",
 	//init_timer (&timer);
 	timer_setup(timer, callback, flags) */
 	timer_setup(&mytimer, ding, 0);
+	/* timer expires when the jiffies var reaches this value */
 	mytimer.expires = jiffies+HZ;	/* 1 sec */
 	//timer.function = ding;
 	//timer.data = jiffies;

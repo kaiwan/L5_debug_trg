@@ -7,7 +7,6 @@
 #include <linux/module.h>
 #include <linux/notifier.h>
 #include <asm-generic/bug.h>
-#include "convenient.h"
 
 MODULE_LICENSE("Dual BSD/GPL");
 
@@ -43,6 +42,7 @@ static int my_panic_notifier_call(struct notifier_block *nb,
 	int loc=5;
 
 	pr_emerg("Panic !ALARM! @ %s_%s_%d\n", __FILE__, __FUNCTION__, __LINE__);
+	dump_stack();
 #if defined CONFIG_ARM
 	arm_getreg();
 	pr_emerg("loc=0x%p, ARM stack reg val = 0x%x\n", &loc, armsp);
@@ -76,12 +76,13 @@ void pnc_unregister_panic_notifier(void)
 static int __init pnc_init(void)
 {
 	pnc_register_panic_notifier();
-	MSG("Regd panic notifier.\n");
+	pr_debug("Regd panic notifier.\n");
 	return 0;
 }
 static void __exit pnc_exit(void)
 {
 	pnc_unregister_panic_notifier();
+	pr_debug("Unregd panic notifier.\n");
 }
 
 module_init(pnc_init);

@@ -138,7 +138,7 @@ static ssize_t dbgfs_genwrite(struct file *filp, const char __user *ubuf, size_t
 	if (copy_from_user(udata, ubuf, count))
 		return -EIO;
 	//print_hex_dump_bytes(" ", DUMP_PREFIX_NONE, udata, count);
-	udata[count]='\0';
+	udata[count-1]='\0';
 	MSG("count=%zu user passed: %s\n", count, udata);
 
 	if (udata[0] == '0' && udata[1] == 'x') // it's a hex #

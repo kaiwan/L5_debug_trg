@@ -49,7 +49,7 @@ FNAME_C := debugfs_eg
 
 PWD            := $(shell pwd)
 obj-m          += ${FNAME_C}.o
-EXTRA_CFLAGS   += -DDEBUG
+EXTRA_CFLAGS   += -UDEBUG
 
 all:
 	@echo

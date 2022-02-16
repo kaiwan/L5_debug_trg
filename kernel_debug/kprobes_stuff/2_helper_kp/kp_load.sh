@@ -26,9 +26,9 @@ source ./common.sh || {
 check_function()
 {
 FUNC=$1
-if [ -z $FUNC ]; then
+if [ -z "${FUNC}" ]; then
 	echo
-	echo "*** $name: function name null, aborting now.."
+	echo "*** ${name}: function name null, aborting now.."
 	exit 1
 fi
 ShowTitle "[ Validate the to-be-Kprobed function ${FUNC} ]"
@@ -37,7 +37,7 @@ ShowTitle "[ Validate the to-be-Kprobed function ${FUNC} ]"
 # In any case, if the function is invalid, it will be caught on the 
 # register_kprobe(), which will then fail..
 
-# What about embedded system which don't have either SYMLOC ??
+# TODO: what about embedded system which don't have either SYMLOC ??
 if [ ! -f /proc/kallsyms ]; then
   if [ ! -f /boot/System.map-$(uname -r) ]; then
   	echo
@@ -64,53 +64,87 @@ grep -w "[tT] ${FUNC}" ${SYMLOC} || {
  }
 num=$(grep -w "[tT] ${FUNC}" ${SYMLOC} |wc -l)
 [ ${num} -gt 1 ] && {
- echo
- echo "*** $name: FATAL: Symbol '${FUNC}' - multiple instances found!
- [We currently cannot handle this case, aborting...]"
- exit 1
+ echo "
+ ### $name: WARNING! Symbol '${FUNC}' - multiple instances found!
+"
+ #exit 1
  }
 }
 
-run_lkm()
+# Running as root here...
+insert_kprobe()
 {
 ########## Lets run! #########################
-echo $SEP
+echo ${SEP}
 # rmmod any old instances
-/sbin/rmmod $KPMOD 2>/dev/null
-if [ $PROBE_KERNEL -eq 0 ]; then
-	/sbin/rmmod $TARGET_MODULE 2>/dev/null
+/sbin/rmmod ${KPMOD} 2>/dev/null
+if [ ${PROBE_KERNEL} -eq 0 ]; then
+	/sbin/rmmod ${TARGET_MODULE} 2>/dev/null
 fi
 
-dmesg -c > /dev/null
+dmesg -C
 
-# 1. First insert the kernel module (whose function is to be probed)
-if [ $PROBE_KERNEL -eq 0 ]; then
-	/sbin/insmod $TARGET_MODULE || {
-		echo "$name: insmod $TARGET_MODULE unsuccessful, aborting now.."
+# 1. If a module function is to be probed, first insert the kernel module
+if [ ${PROBE_KERNEL} -eq 0 ]; then
+	/sbin/insmod ${TARGET_MODULE} || {
+		echo "$name: insmod ${TARGET_MODULE} unsuccessful, aborting now.."
 		echo "dmesg|tail"
 		dmesg|tail
 		exit 5
 	}
-	echo "$name: insmod $TARGET_MODULE successful."
+	echo "${name}: insmod ${TARGET_MODULE} successful."
 	echo "dmesg|tail"
 	dmesg|tail
 fi
-echo $SEP
+echo ${SEP}
 
 # 2. Insert the helper_kp kernel module that will set up the kprobe
-/sbin/insmod ./$KPMOD.ko funcname=$FUNCTION verbose=${VERBOSE} || {
-	echo "$name: insmod $KPMOD unsuccessful, aborting now.."
-	if [ $PROBE_KERNEL -eq 0 ]; then
-		/sbin/rmmod $TARGET_MODULE
+/sbin/insmod ./${KPMOD}.ko funcname=${FUNCTION} verbose=${VERBOSE} || {
+	echo "${name}: insmod ${KPMOD} unsuccessful, aborting now.."
+	if [ ${PROBE_KERNEL} -eq 0 ]; then
+		/sbin/rmmod ${TARGET_MODULE}
 	fi
 	echo "dmesg|tail"
 	dmesg|tail
 	exit 7
 }
-echo "$name: successful."
+echo "${name}: successful."
 echo "dmesg|tail"
 dmesg|tail
 cd ..
+}
+
+usage()
+{
+	echo "Usage: ${name} [--verbose] [--help] [--mod=module-pathname] --probe=function-to-probe
+       ---probe=probe-this-function  : if module-pathname is not passed, 
+                                           then we assume the function to be kprobed is in the kernel itself.
+       [--mod=module-pathname]       : pathname of kernel module that has the function-to-probe
+       [--verbose]                   : run in verbose mode	
+       [--help]                      : show this help screen"
+	exit
+}
+
+kprobes_check()
+{
+echo -n "[+] Performing basic sanity checks for kprobes support... "
+KPROBES_SUPPORTED=0
+[ -f /boot/config-$(uname -r) ] && {
+	grep -w -q "CONFIG_KPROBES=y" /boot/config-$(uname -r) && KPROBES_SUPPORTED=1
+}
+[ -f /boot/System.map-$(uname -r) ] && {
+	grep -q -w register_kprobe /boot/System.map-$(uname -r) && KPROBES_SUPPORTED=1
+}
+modprobe configs 2>/dev/null
+[ -f /proc/config.gz ] && {
+	zcat /proc/config.gz |grep -q -i kprobes && KPROBES_SUPPORTED=1
+}
+[ ${KPROBES_SUPPORTED} -eq 0 ] && {
+	  echo "${name}: Kprobes does not seem to be supported on this kernel [2]."
+	  exit 1
+}
+echo " OK
+"
 }
 
 
@@ -122,66 +156,61 @@ cd ..
 #  In this case, the script's first parameter will not be a kernel module pathname
 #  and we shall accordingly treat the first parameter as the name of the function
 #  to kprobe.
-PROBE_KERNEL=0
+PROBE_KERNEL=1
 
-TARGET_MODULE=""
+#TARGET_MODULE=""
 SEP="-------------------------------------------------------------------------------"
-name=`basename $0`
+name=$(basename $0)
 
-if [ `id -u` -ne 0 ]; then
-	echo "$name: Sorry, you need to run $name as superuser."
+if [ $(id -u) -ne 0 ]; then
+	echo "${name}: requires root."
 	exit 1
 fi
-echo -n "[ "
-KPROBES_SUPPORTED=0
-[ -f /boot/config-$(uname -r) ] && {
-	grep -q CONFIG_KPROBES /boot/config-$(uname -r) && KPROBES_SUPPORTED=1
-}
-[ -f /boot/config-$(uname -r) ] && {
-	grep -w register_kprobe /boot/System.map-$(uname -r) && KPROBES_SUPPORTED=1
-}
-[ -f /proc/config.gz ] && {
-	zcat /proc/config.gz |grep -i kprobes && KPROBES_SUPPORTED=1
-}
-[ ${KPROBES_SUPPORTED} -eq 0 ] && {
-	  echo "${name}: Kprobes does not seem to be supported on this kernel [2]."
-	  exit 1
-}
-echo " ] "
+kprobes_check
 
-#echo "$#: $*"
 VERBOSE=0
-if [ $# -eq 2 ]; then
-	echo
-	echo "$name: 0: Assume that we're k-probing something in the kernel itself."
-	PROBE_KERNEL=1
-	FUNCTION=$1
-	[ $2 = "1" ] && VERBOSE=1
-elif [ $# -eq 3 ]; then
-	TARGET_MODULE=$1
-	FUNCTION=$2
-	[ $3 = "1" ] && VERBOSE=1
-else
-	echo "Usage: $name [module-pathname] function-to-probe 0|1
- 1st param [OPTIONAL]: module-pathname: pathname of kernel module that has the
-            function-to-probe
+optspec=":h?-:"  #mod:probe:"
+while getopts "${optspec}" opt
+do
+    #echo "1. opt = ${opt}  ind=${OPTIND}  OPTARG = ${OPTARG}"
+    case "${opt}" in
+		-)                       # 'long' opts '--xxx' style, ala checksec!
+        #echo "1. opt = ${opt}  ind=${OPTIND}  OPTARG = ${OPTARG}"
+		    case "${OPTARG}" in
+			  h|?|help)
+			    usage
+				exit 0
+				;;
+			  probe=*) #echo "--probe ! p: $@; ind=$OPTIND arg= $OPTARG" 
+				FUNCTION=$(echo "${OPTARG}" |cut -d'=' -f2) ;;
+			  mod=*) #echo "--mod ! p: $@; ind=$OPTIND arg= $OPTARG" 
+				TARGET_MODULE=$(echo "${OPTARG}" |cut -d'=' -f2)
+				PROBE_KERNEL=0 ;;
+			  verbose) VERBOSE=1 ;;
+			  *) echo "Unknown option '${OPTARG}'" #; usage
+				;;
+  	        esac
+  	esac
+done
+shift $((OPTIND-1))
 
- 2nd param [REQUIRED]: Function name. If module-pathname is not passed (1st param), 
-                        then we assume the function to be kprobed is in the kernel itself.
-
- 3rd param [REQUIRED]: verbose flag; pass 1 for verbose mode, 0 for quiet mode.
+[ ${VERBOSE} -eq 1 ] && echo "FUNCTION=${FUNCTION} PROBE_KERNEL=${PROBE_KERNEL} TARGET_MODULE=${TARGET_MODULE} ; VERBOSE=${VERBOSE}"
+[ -z "${FUNCTION}" ] && {
+  echo "${name}: minimally, a function to be kprobe'd has to be specified (via the --probe=func option)
 "
-	exit 2
-fi
+  usage
+}
+echo -n "Verbose mode is "
+[ ${VERBOSE} -eq 1 ] && echo "on" || echo "off"
 
 check_function ${FUNCTION}
 
-if [ $PROBE_KERNEL -eq 0 ]; then
-	if [ ! -f $TARGET_MODULE ]; then
-		echo "$name: kernel module name '$TARGET_MODULE' an invalid pathname, aborting now.."
+if [ ${PROBE_KERNEL} -eq 0 ]; then
+	if [ ! -f ${TARGET_MODULE} ]; then
+		echo "${name}: kernel module '${TARGET_MODULE}' seems to be an invalid pathname, aborting now.."
 		exit 1
 	fi
-	echo "Target kernel Module: $TARGET_MODULE"
+	echo "Target kernel Module: ${TARGET_MODULE}"
 fi
 
 ################ Generate a kernel module to probe this particular function ###############
@@ -189,16 +218,25 @@ BASEFILE_C=helper_kp.c
 BASEFILE_H=convenient.h
 BASEFILE=helper_kp
 
+if [ ! -f ${BASEFILE_C} ]; then
+  echo "${name}: base file ${BASEFILE_C} missing?"
+  exit 1
+fi
+if [ ! -f ${BASEFILE_H} ]; then
+  echo "${name}: base file ${BASEFILE_H} missing?"
+  exit 1
+fi
+
 export KPMOD=${BASEFILE}-${FUNCTION}-$(date +%d%b%y) #_%H%M%S)
 #export KPMOD=${BASEFILE}-${FUNCTION}-$(date +%d%m%y_%H%M%S)
 echo $SEP
-echo "KPMOD=$KPMOD"
+echo "KPMOD=${KPMOD}"
 
-rm -rf tmp/
+rm -rf tmp/ 2>/dev/null
 mkdir -p tmp/
 cd tmp
 cp ../${BASEFILE_C} ${KPMOD}.c || exit 1
-cp ../${BASEFILE_H} . || exit 1
+#cp ../${BASEFILE_H} . || exit 1
 
 echo "--- Generating tmp/Makefile ---------------------------------------------------"
 # Generate the Makefile
@@ -212,8 +250,7 @@ ifneq (\$(KERNELRELEASE),)
 	# If you choose to keep the define USE_FTRACE_PRINT , we'll use
 	# trace_printk() , else the regular printk()
 	EXTRA_CFLAGS += -DDEBUG  # use regular printk()
-	#EXTRA_CFLAGS += -DDEBUG -DUSE_FTRACE_PRINT  # use ftrace trace_printk()
-	obj-m := $KPMOD.o
+	obj-m += ${KPMOD}.o
 
 else
 	#########################################
@@ -230,31 +267,34 @@ else
 	PWD   := \$(shell pwd)
 default:
 	\$(MAKE) -C \$(KDIR) M=\$(PWD) modules
+install:
+	\$(MAKE) -C \$(KDIR) M=\$(PWD) modules_install
 endif
 clean:
 	\$(MAKE) -C \$(KDIR) SUBDIRS=\$(PWD) clean
 @MYMARKER@
 
-ln -s ../convenient.h  # adjust for your workspace
+#rm -f convenient.h
+ln -sf ../convenient.h  # adjust for your workspace
 
 echo "--- make ---------------------------------------------------"
 make || {
-  echo "$0: failed to 'make'. Aborting..."
+  echo "${name}: failed to 'make'. Aborting..."
   cd ..
   exit 1
 }
 
-ls -l $KPMOD.ko
+ls -l ${KPMOD}.ko
 
 ##############################################
 
 #echo "ARCH=$ARCH"
-TARGET_RFS_LOC=~/myprj   ## UPDATE! for your system
-if [ "${ARCH}" = "arm" ]; then
-	echo "Built module(s) for ARM, copying to target RFS. Run on target to test.."
-	sudo cp $KPMOD.ko $TARGET_RFS_LOC
-	exit 0
-fi
+#TARGET_RFS_LOC=~/myprj   ## UPDATE! for your system
+#if [ "${ARCH}" = "arm" ]; then
+#	echo "Built module for ARM, copying to target RFS. Run on target to test.."
+#	sudo cp ${KPMOD}.ko ${TARGET_RFS_LOC}
+#	exit 0
+#fi
 
-run_lkm
+insert_kprobe
 exit 0

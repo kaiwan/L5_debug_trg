@@ -9,6 +9,11 @@
 # (Here used in conjunction with the hello_gdb.ko kernel module; gdb demo).
 # 
 # [minor changes, kaiwan]
+name=$(basename $0)
+[ $(id -u) -ne 0 ] && {
+	echo "${name} requires root."
+	exit 1
+}
 
 if [ $# -ne 2 ]; then
 	echo "Usage: $0 module-name image-filename"

@@ -40,6 +40,7 @@ FNAME_C := oops2
 PWD            := $(shell pwd)
 obj-m          += ${FNAME_C}.o
 EXTRA_CFLAGS   += -DDEBUG -g
+#EXTRA_CFLAGS += -DDEBUG -g -ggdb -Wa,-a,-ad,-ah,-al
 
 all:
 	@echo

@@ -50,7 +50,7 @@
 #define DBGPRINT(string, args...) do {                             \
      int USE_RATELIMITING=0;                                       \
 	 if (USE_RATELIMITING) {                                   \
-	   printk_ratelimited (KERN_INFO pr_fmt(string), ##args);  \
+	   pr_ratelimited(pr_fmt(string), ##args);  \
 	 }                                                         \
 	 else                                                      \
            pr_info(pr_fmt(string), ##args);                        \
@@ -61,7 +61,7 @@
 #ifdef DEBUG
 #ifdef __KERNEL__
 #define MSG(string, args...) do {                                     \
-	DBGPRINT("%s:%d : " string, __FUNCTION__, __LINE__, ##args);  \
+	DBGPRINT("%s:%s():%d : " string, KBUILD_MODNAME, __func__, __LINE__, ##args);  \
 } while (0)
 #else
 #define MSG(string, args...) do {                                           \

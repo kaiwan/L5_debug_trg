@@ -1,5 +1,20 @@
 /*
  * stackmem_corrupt.c
+ *
+ * Here, we run a testcase to cause more or less complete overwrite of stack
+ * memory - stack corruption.
+ * We show how using the SIGSEGV handler correctly can reveal the root cause.
+ * ...
+ * Within the SIGSEGV handler, to get the core dump, we must reset and re-raise
+ * SIGSEGV. The problem though with doing it naively, is that it's raised on the
+ * same alternate signal stack we're running upon. This will have it unwind the
+ * stack there which is pretty meaningless (as the offending code would have run
+ * on the stack of the offending thread, here, main (T0).
+ * So, we need to reset so as to NOT use the alt signal stack and then
+ * re-raise the signal!
+ *
+ * (c) Kaiwan N Billimoria, kaiwanTECH
+ * Feb 2022.
  */
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -11,59 +26,59 @@
 #include <sys/resource.h>
 #include <errno.h>
 
-static void myfault(int signum, siginfo_t * si, void *ucontext)
+static void myfault(int signum, siginfo_t *si, void *ucontext)
 {
 	fprintf(stderr,
 	"\n------------------- FATAL signal ---------------------------\n");
-	fprintf(stderr," %s: received signal %d. errno=%d\n"
+	fprintf(stderr, " %s: received signal %d. errno=%d\n"
 	       " Cause/Origin: (si_code=%d): ",
 	       __func__, signum, si->si_errno, si->si_code);
 
 	switch (si->si_code) {
 	/* Possible values si_code can have for SIGSEGV */
 	case SEGV_MAPERR:
-		fprintf(stderr,"SEGV_MAPERR: address not mapped to object\n");
+		fprintf(stderr, "SEGV_MAPERR: address not mapped to object\n");
 		break;
 	case SEGV_ACCERR:
-		fprintf(stderr,"SEGV_ACCERR: invalid permissions for mapped object\n");
+		fprintf(stderr, "SEGV_ACCERR: invalid permissions for mapped object\n");
 		break;
 	/* SEGV_BNDERR and SEGV_PKUERR result in compile failure? */
 #if 0
 	case SEGV_BNDERR: /* 3.19 onward */
-		fprintf(stderr,"SEGV_BNDERR: failed address bound checks\n");
+		fprintf(stderr, "SEGV_BNDERR: failed address bound checks\n");
 	case SEGV_PKUERR: /* 4.6 onward */
-		fprintf(stderr,"SEGV_PKUERR: access denied by memory-protection keys\n");
+		fprintf(stderr, "SEGV_PKUERR: access denied by memory-protection keys\n");
 #endif
 	/* Other possibilities for si_code; here just to show them... */
 	case SI_USER:
-		fprintf(stderr,"user\n");
+		fprintf(stderr, "user\n");
 		break;
 	case SI_KERNEL:
-		fprintf(stderr,"kernel\n");
+		fprintf(stderr, "kernel\n");
 		break;
 	case SI_QUEUE:
-		fprintf(stderr,"queue\n");
+		fprintf(stderr, "queue\n");
 		break;
 	case SI_TIMER:
-		fprintf(stderr,"timer\n");
+		fprintf(stderr, "timer\n");
 		break;
 	case SI_MESGQ:
-		fprintf(stderr,"mesgq\n");
+		fprintf(stderr, "mesgq\n");
 		break;
 	case SI_ASYNCIO:
-		fprintf(stderr,"async io\n");
+		fprintf(stderr, "async io\n");
 		break;
 	case SI_SIGIO:
-		fprintf(stderr,"sigio\n");
+		fprintf(stderr, "sigio\n");
 		break;
 	case SI_TKILL:
-		fprintf(stderr,"t[g]kill\n");
+		fprintf(stderr, "t[g]kill\n");
 		break;
 	default:
-		fprintf(stderr,"-none-\n");
+		fprintf(stderr, "-none-\n");
 	}
 
-	fprintf(stderr," Faulting instr or address = %p\n", si->si_addr);
+	fprintf(stderr, " Faulting instr or address = %p\n", si->si_addr);
 	//fprintf(stderr, " --- Register Dump [x86_64] ---\n");
 	//dump_regs(ucontext);
 	fprintf(stderr,
@@ -78,7 +93,7 @@ static void myfault(int signum, siginfo_t * si, void *ucontext)
 	 *  crashed_perform_cleanup();
 	 *  crashed_inform_enduser();
 	 *
-	 * Now, to get the core dump, we must reset and raise SIGSEGV. The problem
+	 * Now, to get the core dump, we must reset and re-raise SIGSEGV. The problem
 	 * though with doing it naively, is that it's raised on the same alternate
 	 * signal stack we're running upon. This will have it unwind the stack there
 	 * which is pretty meaningless (as the offending code would have run on the
@@ -117,14 +132,14 @@ int setup_altsigstack(size_t stack_sz)
 
 	printf("Alt signal stack size = %zu bytes\n", stack_sz);
 	ss.ss_sp = malloc(stack_sz);
-	if (!ss.ss_sp){
+	if (!ss.ss_sp) {
 		printf("malloc(%zu) for alt sig stack failed\n", stack_sz);
 		return -ENOMEM;
 	}
 
 	ss.ss_size = stack_sz;
 	ss.ss_flags = 0;
-	if (sigaltstack(&ss, NULL) == -1){
+	if (sigaltstack(&ss, NULL) == -1) {
 		printf("sigaltstack for size %zu failed!\n", stack_sz);
 		return -errno;
 	}
@@ -149,8 +164,8 @@ static void write_underflow_corruptstack(void)
 		return;
 	}
 	printf("%s(): stack resource limits: soft=%ld, hard=%ld\n",
-		__func__, reslimit.rlim_cur,reslimit.rlim_max);
-	
+		__func__, reslimit.rlim_cur, reslimit.rlim_max);
+
 	// Get actual size of stack mapping for this process via /proc/PID/maps
 	memset(cmd, 0, 128);
 	snprintf(cmd, 128, "./getmapsize %d stack", getpid());
@@ -170,14 +185,14 @@ static void write_underflow_corruptstack(void)
 		__func__, stacksz, stacksz);
 	if (stacksz % getpagesize())
 		printf("%s():WARNING:actual stack size isn't a rounded page size\n", __func__);
-	
+
 	snprintf(stacksz_hexstr, 18, "0x%x", stacksz);
 	stacksz_hex = strtoul(stacksz_hexstr, NULL, 16);
 	stackptr = (unsigned long)&stack;
 	printf("%s():actual start of stack is 0x%lx\n", __func__, stackptr - stacksz_hex);
 
 #if 1
-	// OVERWRITE - corrupt - stack memory !
+	// OVERWRITE - and thus corrupt - stack memory !
 	memset((void *)(stackptr - stacksz_hex), 'x', stacksz);
 #endif
 	/*
@@ -191,8 +206,8 @@ static void write_underflow_corruptstack(void)
 #2  0x7878787878787878 in ?? ()
 #3  0x7878787878787878 in ?? ()
 #4  0x0000000000000000 in ?? ()
-(gdb) 
-	* 
+(gdb)
+	*
 	* 0x78 is 'x' ! the value we memset into the stack mem region...
 	*/
 	/*
@@ -226,7 +241,7 @@ int main(int argc, char **argv)
 	struct sigaction act;
 #if 1
 	// Set up the stack to eat a lot of memory (7 MB)
-#define NUM 7*1024*1024/sizeof(long long)
+#define NUM ((7*1024*1024)/sizeof(long long))
 	long long longarr[NUM];
 
 	memset(&longarr[0], 0xef, NUM);

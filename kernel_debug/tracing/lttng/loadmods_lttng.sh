@@ -1,22 +1,56 @@
+#!/bin/bash
 
-MODS="lttng-clock                            lttng-probe-net                          lttng-probe-v4l2
-lttng-clock-plugin-test                  lttng-probe-power                        lttng-probe-vmscan
-lttng-kprobes                            lttng-probe-printk                       lttng-probe-workqueue
-lttng-kretprobes                         lttng-probe-random                       lttng-probe-writeback
-lttng-lib-ring-buffer                    lttng-probe-rcu                          lttng-ring-buffer-client-discard
-lttng-probe-asoc                         lttng-probe-regulator                    lttng-ring-buffer-client-mmap-discard
-lttng-probe-block                        lttng-probe-sched                        lttng-ring-buffer-client-mmap-overwrite
-lttng-probe-compaction                   lttng-probe-scsi                         lttng-ring-buffer-client-overwrite
-lttng-probe-gpio                         lttng-probe-signal                       lttng-ring-buffer-metadata-client
-lttng-probe-irq                          lttng-probe-skb                          lttng-ring-buffer-metadata-mmap-client
-lttng-probe-jbd2                         lttng-probe-sock                         lttng-statedump
-lttng-probe-kmem                         lttng-probe-statedump                    lttng-test
-lttng-probe-kvm                          lttng-probe-sunrpc                       lttng-tracer
-lttng-probe-module                       lttng-probe-timer                        
-lttng-probe-napi                         lttng-probe-udp"
+MODS="lttng_probe_writeback
+lttng_probe_workqueue
+lttng_probe_v4l2
+lttng_probe_vmscan
+lttng_probe_udp
+lttng_probe_timer
+lttng_probe_sunrpc
+lttng_probe_statedump
+lttng_probe_sock
+lttng_probe_skb
+lttng_probe_signal
+lttng_probe_scsi
+lttng_probe_sched
+lttng_probe_regulator
+lttng_probe_rcu
+lttng_probe_random
+lttng_probe_printk
+lttng_probe_power
+lttng_probe_net
+lttng_probe_napi
+lttng_probe_module
+lttng_probe_kvm
+lttng_probe_kmem
+lttng_probe_jbd2
+lttng_probe_irq
+lttng_probe_i2c
+lttng_probe_gpio
+lttng_probe_compaction
+lttng_probe_block
+lttng_probe_asoc
+lttng_counter_client_percpu_32_modular
+lttng_counter_client_percpu_64_modular
+lttng_counter
+lttng_ring_buffer_event_notifier_client
+lttng_ring_buffer_metadata_mmap_client
+lttng_ring_buffer_client_mmap_overwrite
+lttng_ring_buffer_client_mmap_discard
+lttng_ring_buffer_metadata_client
+lttng_ring_buffer_client_overwrite
+lttng_ring_buffer_client_discard
+lttng_tracer
+lttng_statedump
+lttng_wrapper
+lttng_uprobes
+lttng_clock
+lttng_kprobes
+lttng_lib_ring_buffer
+lttng_kretprobes"
 
 for mod in ${MODS}
 do
   echo "kmod: ${mod}"
-  sudo modprobe ${mod}
+  sudo modprobe ${mod} || echo "modprobe failed"
 done

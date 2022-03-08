@@ -18,8 +18,7 @@ name=$(basename $0)
 
 die()
 {
-	echo "
-	*** Fatal ***
+	echo >&2 " *** Fatal ***
 $@"
 	exit 1
 }
@@ -45,12 +44,9 @@ gzip -9 ${TARBALL}
 ls -lh ${TARBALL}*
 }
 
-## "main" here
+#--- "main" here
 which lttng >/dev/null || die "lttng not installed?"
-[ $(id -u) -ne 0 ] && {
- echo "${name}: need to be root."
- exit 1
-}
+[ $(id -u) -ne 0 ] && die "need to be root."
 
 [ $# -lt 2 ] && {
  echo "Usage: ${name} session-name program-to-trace-with-LTTng|0
@@ -88,7 +84,8 @@ if [ "$2" = "0" ]; then
   lttng start
   read
 else
-  shift
+  #echo "params: num=$# val=$@"
+  #shift
   echo "@@@ ${name}: Tracing \"$@\" now ... @@@"
   date ; date +%s.%N   # timestamp
   lttng start ; eval "$@" ; lttng stop

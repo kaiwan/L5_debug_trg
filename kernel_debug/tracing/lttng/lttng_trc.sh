@@ -74,7 +74,7 @@ lttng create ${SESSION} --output=${TRC_OUT_DIR} || die "lttng create failed"
 # WARNING! Big trace files with ALL kernel events
 echo "[+] lttng enable events ..."
 lttng enable-event --kernel --all
-# userspace tracef()
+# userspace tracef() [??]
 lttng enable-event --userspace 'lttng_ust_tracef:*'
 
 #--- perform the trace
@@ -85,7 +85,7 @@ if [ "$2" = "0" ]; then
   read
 else
   #echo "params: num=$# val=$@"
-  #shift
+  shift # $1 is the session name; $2 onward is the program to execute
   echo "@@@ ${name}: Tracing \"$@\" now ... @@@"
   date ; date +%s.%N   # timestamp
   lttng start ; eval "$@" ; lttng stop

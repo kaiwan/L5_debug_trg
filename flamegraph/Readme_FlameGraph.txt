@@ -8,10 +8,17 @@ Run the flame_grapher.sh script, follow instructions.
 The result is a rendered SVG file - the FlameGraph!. 
 You can view it in a web browser.
 
+The *style* of the flamegraph can be one of:
+- regular: 'upward-growing', or
+- icicle : 'downward-growing' [default]
+This script keeps icicle-style as the default as it's technically correct; on
+pretty much all modern arch's (CPUs) stacks grown towards lower (virual) addresses!
+You can change it by changing:
+flame_grapher.sh:STYLE_INVERTED_ICICLE=1  to the value 0.
 
-=====
-NOTE
-=====
+=========
+IMP NOTE
+=========
 Getting a decent FlameGraph REQUIRES:
 - frame pointers (-fomit-frame-pointer is the typical GCC flag!)
   - possible exception case is the Linux kernel itself; it has intelligent

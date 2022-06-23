@@ -52,5 +52,5 @@ lttng_kretprobes"
 for mod in ${MODS}
 do
   echo "kmod: ${mod}"
-  sudo modprobe ${mod} || echo "modprobe failed"
+  sudo modprobe ${mod}
 done

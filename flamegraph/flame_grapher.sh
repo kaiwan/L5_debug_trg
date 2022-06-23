@@ -12,12 +12,19 @@
 # (c) 2016,2022 kaiwanTECH
 # License: MIT
 name=$(basename $0)
+STYLE_INVERTED_ICICLE=1
 
 usage()
 {
-  echo "Usage: ${name} [process-PID-to-sample] svg-out-filename (without .svg)
+  echo "Usage: ${name} [process-PID-to-sample] svg-out-filename(without .svg)
  No PID implies the entire system is sampled..."
-  echo "${name} --help , to show this help screen."
+ echo "
+Also note that the default style here is to display the stack frames"
+ [ ${STYLE_INVERTED_ICICLE} -eq 0 ] && echo " normally (i.e. reaching/growing 'upward'"
+ [ ${STYLE_INVERTED_ICICLE} -eq 1 ] && echo " 'icicle'-style (i.e. downward-growing (technically correct!))"
+
+ echo "
+${name} --help , to show this help screen."
 }
 
 ### "main" here
@@ -45,7 +52,9 @@ PDIR=""
 TOPDIR=${PWD}
 PERF_RESULT_DIR_BASE=/tmp/flamegraphs # change to make it non-volatile
 
-trap 'cd ${TOPDIR}; ./2flameg.sh ${PDIR} ${SVG}' INT QUIT
+#---Keep Updated!
+trap 'cd ${TOPDIR}; ./2flameg.sh ${PDIR} ${SVG} ${STYLE_INVERTED_ICICLE}' INT QUIT
+#---
 
 if [ $# -eq 2 ]; then  #------------------ Profile a particular process
  # Check if PID is valid
@@ -54,7 +63,8 @@ if [ $# -eq 2 ]; then  #------------------ Profile a particular process
    echo "${name}: PID $1 is an invalid (or dead) process?"
    exit 1
  }
- echo "### ${name}: recording samples on process PID ${1} now... Press ^C to stop..."
+ echo "### ${name}: recording samples on process PID ${1} now...
+ Press ^C to stop..."
  SVG=${2}.svg
  PDIR=${PERF_RESULT_DIR_BASE}/${2}
  #echo "PDIR = ${PDIR} SVG=${SVG}"
@@ -63,7 +73,8 @@ if [ $# -eq 2 ]; then  #------------------ Profile a particular process
  cd ${PDIR}
  sudo perf record -F ${HZ} --call-graph dwarf -p $1 || exit 1  # generates perf.data
 elif [ $# -eq 1 ]; then  #---------------- Profile system-wide
- echo "### ${name}: recording samples system-wide now...Press ^C to stop..."
+ echo "### ${name}: recording samples system-wide now...
+ Press ^C to stop..."
  SVG=${1}.svg
  PDIR=${PERF_RESULT_DIR_BASE}/${1}
  #echo "PDIR = ${PDIR} SVG=${SVG} LOGNAME = $(logname)"
@@ -78,5 +89,5 @@ cd ${TOPDIR}
 # We reach here only if the target process dies before ^C is pressed ...
 # Generate CPU FlameGraph
 echo "### ${name}: generating SVG ${PDIR}/${SVG} now..."
-./2flameg.sh ${PDIR} ${SVG}
+./2flameg.sh ${PDIR} ${SVG} ${STYLE_INVERTED_ICICLE}
 exit 0

@@ -12,31 +12,37 @@
 # (c) 2016,2022 kaiwanTECH
 # License: MIT
 name=$(basename $0)
-FLMGR=~/FlameGraph  # location of code
+export FLMGR=~/FlameGraph  # location of code
 PERF_RESULT_DIR_BASE=/tmp/flamegraphs # change to make it non-volatile
 STYLE_INVERTED_ICICLE=1
 TYPE_CHART=0
+HZ=99
 
 usage()
 {
   echo "Usage: ${name} -o svg-out-filename(without .svg) [options ...]
   -o svg-out-filename(without .svg) : name of SVG file to generate (saved under ${PERF_RESULT_DIR_BASE}/)
-Options:
- [-p PID]     : optional:
-                 PID: generate a FlameGraph for ONLY this process (and it's threads if multithreaded)
+Optional switches:
+ [-p PID]     : PID = generate a FlameGraph for ONLY this process or thread
                  If not passed, the *entire system* is sampled...
- [-s <style>] : optional: 
-                 icicle = draw the stack frames growing downward [default]
-                 normal = draw the stack frames growing upward
- [-f <type>]  : optional:
-                 graph  = produce a flame graph (X axis is NOT time, merges stacks) [default]
+ [-s <style>] : icicle = draw the stack frames growing downward [default]
+                normal = draw the stack frames growing upward
+ [-t <type>]  : graph  = produce a flame graph (X axis is NOT time, merges stacks) [default]
                    Good for performance outliers (who's eating CPU? using max stack?); works well for multi-threaded apps
-                 chart  = produce a flame chart (sort by time, do not merge stacks)
+                chart  = produce a flame chart (sort by time, do not merge stacks)
                    Good for seeing all calls; works well for single-threaded apps
+ [-f <frequency>] : frequency (HZ) to have perf sample the system/process at [default=${HZ}]
+                      Too high a value here can cause issues
  -h|-?        : show this help screen.
 
 Note that the FlameGraph SVG (and perf.data file) are stored in the volatile ${PERF_RESULT_DIR_BASE} dir;
 copy them to a non-volatile location to save them."
+}
+
+function die
+{
+echo >&2 "$@"
+exit 1
 }
 
 
@@ -67,7 +73,8 @@ which perf >/dev/null 2>&1 || {
 }
 
 #--- getopts processing
-optspec=":o:p:s:f:h?" # a : after an arg implies it expects an argument
+optspec=":o:p:s:t:f:h?" # a : after an arg implies it expects an argument
+unset PID
 while getopts "${optspec}" opt
 do
     #echo "opt=${opt} optarg=${OPTARG}"
@@ -80,8 +87,9 @@ do
 	 	        PID=${OPTARG}
 		        #echo "-p passed; PID=${PID}"
 				# Check if PID is valid
-			    [ ! -d /proc/${PID} ] && {
-			      echo "${name}: PID ${PID} is an invalid (or dead) process?"
+				sudo kill -0 ${PID} 2>/dev/null
+			    [ $? -ne 0 ] && {
+			      echo "${name}: PID ${PID} is an invalid (or dead) process/thread?"
 			      exit 1
 			    }
 			    ;;
@@ -93,13 +101,17 @@ do
 				fi
 				[ "${STYLE}" = "normal" ] && STYLE_INVERTED_ICICLE=0
 			    ;;
-			  f)
+			  t)
 	 	        TYPE=${OPTARG}
 		        #echo "-f passed; TYPE=${TYPE}"
 				if [ "${TYPE}" != "graph" -a  "${TYPE}" != "chart" ]; then
 					usage ; exit 1
 				fi
 				[ "${TYPE}" = "chart" ] && TYPE_CHART=1
+			    ;;
+			  f)
+	 	        HZ=${OPTARG}
+		        echo "-f passed; HZ=${HZ}"
 			    ;;
 			  h|?)
 			    usage
@@ -115,35 +127,25 @@ shift $((OPTIND-1))
 		usage ; exit 1
 }
 
-HZ=99
-SVG=""
-PDIR=""
+SVG=${OUTFILE}.svg
+PDIR=${PERF_RESULT_DIR_BASE}/${OUTFILE}
 TOPDIR=${PWD}
 
 #--- Run the part 2 - generating the FG - on interrupt or exit
 trap 'cd ${TOPDIR}; ./2flameg.sh ${PDIR} ${SVG} ${STYLE_INVERTED_ICICLE} ${TYPE_CHART}' INT QUIT EXIT
 #---
 
-if [ ${PID} -gt 0 ]; then  #------------------ Profile a particular process
+mkdir -p ${PDIR} || die "mkdir -p ${PDIR}"
+sudo chown -R ${LOGNAME}:${LOGNAME} ${PERF_RESULT_DIR_BASE} 2>/dev/null
+cd ${PDIR}
+
+if [ ! -z "${PID}" ]; then  #------------------ Profile a particular process
  echo "### ${name}: recording samples on process PID ${PID} now...
  Press ^C to stop..."
- SVG=${OUTFILE}.svg
- PDIR=${PERF_RESULT_DIR_BASE}/${OUTFILE}
- #echo "PDIR = ${PDIR} SVG=${SVG}"
- mkdir -p ${PDIR}
- sudo chown -R ${LOGNAME}:${LOGNAME} ${PERF_RESULT_DIR_BASE} 2>/dev/null
- cd ${PDIR}
  sudo perf record -F ${HZ} --call-graph dwarf -p ${PID} || exit 1  # generates perf.data
-elif [ $# -eq 1 ]; then  #---------------- Profile system-wide
+else                        #---------------- Profile system-wide
  echo "### ${name}: recording samples system-wide now...
  Press ^C to stop..."
- SVG=${OUTFILE}.svg
- PDIR=${PERF_RESULT_DIR_BASE}/${OUTFILE}
- #echo "PDIR = ${PDIR} SVG=${SVG} LOGNAME = $(logname)"
-
- mkdir -p ${PDIR}
- sudo chown -R $(logname):$(logname) ${PERF_RESULT_DIR_BASE} 2>/dev/null
- cd ${PDIR}
  sudo perf record -F ${HZ} --call-graph dwarf -a || exit 1  # generates perf.data
 fi
 cd ${TOPDIR}

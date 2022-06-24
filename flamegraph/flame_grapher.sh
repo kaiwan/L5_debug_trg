@@ -12,6 +12,7 @@
 # (c) 2016,2022 kaiwanTECH
 # License: MIT
 name=$(basename $0)
+FLMGR=~/FlameGraph  # location of code
 STYLE_INVERTED_ICICLE=1
 
 usage()
@@ -31,6 +32,13 @@ ${name} --help , to show this help screen."
 
 which perf >/dev/null 2>&1 || {
  echo "${name}: perf not installed? Aborting..."
+ exit 1
+}
+[ ! -d ${FLMGR} ] && {
+ echo "${name}: FlameGraph not installed?
+ You need to install it...
+ In your home dir, type:
+ git clone https://github.com/brendangregg/FlameGraph"
  exit 1
 }
 #[ $(id -u) -ne 0 ] && {

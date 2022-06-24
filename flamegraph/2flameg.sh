@@ -20,10 +20,17 @@
 #        0 => regular
 #        1 => icicle (downward-growing!)
 name=$(basename $0)
-FLMGR=~/FlameGraph  # location of code
-echo "#p = $# p= $*"
-[ $# -lt 4 ] && {
+#echo "#p = $# p= $*"
+
+# Find whether run from the command-line !
+# ref: https://stackoverflow.com/a/4262107/779269
+tok=$(ps -o stat= -p $PPID)  # yields 'S+' via script and 'Ss' via cmdline
+[ "${tok:1:1}" = "s" ] && {
  echo "${name}: should be invoked by the flame_grapher.sh script, not directly!"
+ exit 1
+}
+[ $# -lt 4 ] && {
+# echo "${name}: should be invoked by the flame_grapher.sh script, not directly!"
  echo "Usage: ${name} result-folder SVG-filename style-to-display(1 for icicle) type(1 for FlameChart)"
  exit 1
 }

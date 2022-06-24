@@ -60,8 +60,8 @@ PDIR=""
 TOPDIR=${PWD}
 PERF_RESULT_DIR_BASE=/tmp/flamegraphs # change to make it non-volatile
 
-#---Keep Updated!
-trap 'cd ${TOPDIR}; ./2flameg.sh ${PDIR} ${SVG} ${STYLE_INVERTED_ICICLE}' INT QUIT
+#--- Run the part 2 - generating the FG - on interrupt or exit
+trap 'cd ${TOPDIR}; ./2flameg.sh ${PDIR} ${SVG} ${STYLE_INVERTED_ICICLE}' INT QUIT EXIT
 #---
 
 if [ $# -eq 2 ]; then  #------------------ Profile a particular process
@@ -94,8 +94,4 @@ elif [ $# -eq 1 ]; then  #---------------- Profile system-wide
 fi
 cd ${TOPDIR}
 
-# We reach here only if the target process dies before ^C is pressed ...
-# Generate CPU FlameGraph
-echo "### ${name}: generating SVG ${PDIR}/${SVG} now..."
-./2flameg.sh ${PDIR} ${SVG} ${STYLE_INVERTED_ICICLE}
-exit 0
+exit 0  # this exit causes the 'trap' to run (as we've trapped the EXIT!)

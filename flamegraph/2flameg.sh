@@ -25,6 +25,7 @@ name=$(basename $0)
 # Find whether run from the command-line !
 # ref: https://stackoverflow.com/a/4262107/779269
 tok=$(ps -o stat= -p $PPID)  # yields 'S+' via script and 'Ss' via cmdline
+#echo "${tok}"
 [ "${tok:1:1}" = "s" ] && {
  echo "${name}: should be invoked by the flame_grapher.sh script, not directly!"
  exit 1
@@ -67,9 +68,11 @@ echo "${name}: Working ... generating SVG file \"${1}/${OUTFILE}\"..."
 # --subtitle TEXT  # second level title (optional)
 # --inverted       # icicle graph ; downward-growing
 # --flamechart     # produce a flame chart (sort by time, do not merge stacks)
+# --width NUM      # width of image (default 1200)
 # --hash           # colors are keyed by function name hash
 # --cp             # use consistent palette (palette.map)
 # --notes TEXT     # add notes comment in SVG (for debugging)
+WIDTH=1900  # can make it v large; you'll just have to scroll horizontally...
 TITLE="CPU mixed-mode Flame"
 # ${name} result-folder SVG-filename style-to-display(1 for icicle) type(1 for FlameChart)"
 #            p1               p2           p3:STYLE                      p4:TYPE
@@ -84,7 +87,8 @@ if [ ${STYLE} -eq 0 ] ; then
 	 NOTES="${NOTES}FlameGraph, type chart"
    }
    sudo perf script --input ${INFILE} | ${FLMGR}/stackcollapse-perf.pl | \
-	  ${FLMGR}/flamegraph.pl  --title "${TITLE}" --subtitle "${OUTFILE}" ${PTYPE} > ${OUTFILE} || {
+	  ${FLMGR}/flamegraph.pl  --title "${TITLE}" --subtitle "${OUTFILE}" ${PTYPE} \
+	  --notes "${NOTES}" --width ${WIDTH} > ${OUTFILE} || {
      echo "${name}: failed."
      exit 1
    }
@@ -97,7 +101,8 @@ else
 	 NOTES="${NOTES}FlameGraph, type normal"
   }
   sudo perf script --input ${INFILE} | ${FLMGR}/stackcollapse-perf.pl | \
-	  ${FLMGR}/flamegraph.pl --title "${TITLE}" --subtitle "${OUTFILE}" --inverted ${PTYPE} --notes "${NOTES}" > ${OUTFILE} || {
+	  ${FLMGR}/flamegraph.pl --title "${TITLE}" --subtitle "${OUTFILE}" --inverted ${PTYPE} \
+	  --notes "${NOTES}" --width ${WIDTH} > ${OUTFILE} || {
      echo "${name}: failed."
      exit 1
   }
@@ -112,4 +117,4 @@ echo "View the above SVG file in your web browser to see and zoom into the CPU F
 
 echo "<NOTES:> in the SVG (if any):"
 grep -w "NOTES\:" ${1}/${OUTFILE}
-exit 0
+#exit 0

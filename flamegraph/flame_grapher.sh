@@ -18,6 +18,12 @@ STYLE_INVERTED_ICICLE=1
 TYPE_CHART=0
 HZ=99
 
+# TODO - 
+#  [ ] add -d duration param
+#  [ ] show current config on run
+# ISSUES
+#  [ ] why does 2flameg.sh seem to run twice?? the 'exit' and ^C ?
+
 usage()
 {
   echo "Usage: ${name} -o svg-out-filename(without .svg) [options ...]
@@ -132,7 +138,8 @@ PDIR=${PERF_RESULT_DIR_BASE}/${OUTFILE}
 TOPDIR=${PWD}
 
 #--- Run the part 2 - generating the FG - on interrupt or exit
-trap 'cd ${TOPDIR}; ./2flameg.sh ${PDIR} ${SVG} ${STYLE_INVERTED_ICICLE} ${TYPE_CHART}' INT QUIT EXIT
+trap 'cd ${TOPDIR}; sync ; ./2flameg.sh ${PDIR} ${SVG} ${STYLE_INVERTED_ICICLE} ${TYPE_CHART}' INT EXIT
+#trap 'cd ${TOPDIR}; echo Aborting run... ; sync ; exit 1' QUIT
 #---
 
 mkdir -p ${PDIR} || die "mkdir -p ${PDIR}"
@@ -150,4 +157,4 @@ else                        #---------------- Profile system-wide
 fi
 cd ${TOPDIR}
 
-exit 0  # this exit causes the 'trap' to run (as we've trapped the EXIT!)
+#exit 0  # this exit causes the 'trap' to run (as we've trapped the EXIT!)

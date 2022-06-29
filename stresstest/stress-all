@@ -1,0 +1,3 @@
+#!/bin/bash
+echo "stress-ng --cpu 8 --io 4 --vm 2 --vm-bytes 128M --fork 4 --timeout 5m"
+stress-ng --cpu 8 --io 4 --vm 2 --vm-bytes 128M --fork 4 --timeout 5m

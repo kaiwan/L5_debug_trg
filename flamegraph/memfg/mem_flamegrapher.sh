@@ -35,8 +35,8 @@ usage()
 Optional switches:
  [-p PID]     : PID = generate a FlameGraph for ONLY this process or thread
                  If not passed, the *entire system* is sampled...
- [-s <style>] : icicle = draw the stack frames growing downward [default]
-                normal = draw the stack frames growing upward
+ [-s <style>] : icicle = draw the stack frames growing downward
+                normal = draw the stack frames growing upward [default]
  [-t <type>]  : graph  = produce a flame graph (X axis is NOT time, merges stacks) [default]
                    Good for performance outliers (who's eating CPU? using max stack?); works well for multi-threaded apps
                 chart  = produce a flame chart (sort by time, do not merge stacks)
@@ -48,7 +48,8 @@ Optional switches:
 Note: 
 - the FlameGraph SVG (and perf.data file) are stored in the volatile ${PERF_RESULT_DIR_BASE} dir;
 copy them to a non-volatile location to save them
-- the absence of symbols will cause a very shallow graph; you'll need debug symbols enabled in the target."
+- the absence of symbols will cause a very shallow graph; you'll need debug symbols enabled in the target
+  (see https://www.brendangregg.com/perf.html#StackTraces)."
 }
 
 function die
@@ -175,7 +176,7 @@ sudo grep -q ${CALL2TRACE} /sys/kernel/tracing/available_filter_functions 2>/dev
 
 sudo stackcount-bpfcc ${CALL2TRACE} > ${PDIR}/out.stacks 2>/dev/null
 # user types ^C to end capture... and we next do this:
-${FLMGR}/stackcollapse.pl < /tmp/out.stacks | ${FLMGR}/flamegraph.pl --color=mem \
+${FLMGR}/stackcollapse.pl < ${PDIR}/out.stacks | ${FLMGR}/flamegraph.pl --color=mem \
     --title="Memory Flame Graph" --countname="calls" > ${PDIR}/${SVG} #out.svg
 ls -l ${PDIR}/${SVG}
 

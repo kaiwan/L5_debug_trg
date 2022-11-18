@@ -165,6 +165,7 @@ elif [ ${METHOD} -eq 2 ]; then
 elif [ ${METHOD} -eq 3 ]; then
   CALL2TRACE='t:exceptions:page_fault_*'
   echo "page faults"
+  which stackcount-bpfcc >/dev/null || die "stackcount-bpfcc absent; install bpfcc-tools package?"
 else
   die ": *INVALID method specified*"
 fi

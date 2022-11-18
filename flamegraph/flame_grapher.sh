@@ -63,9 +63,9 @@ which perf >/dev/null 2>&1 || {
  exit 1
 }
 [ ! -d ${FLMGR} ] && {
- echo "${name}: FlameGraph GitHub repo not installed?
+ echo "${name}: I find that the original FlameGraph GitHub repo isn't installed.
  You need to (one-time) install it...
- In your terminal window/shell, type:
+ In your terminal window/shell, type (including the parentheses):
  (cd; git clone https://github.com/brendangregg/FlameGraph)"
  exit 1
 }
@@ -138,7 +138,7 @@ PDIR=${PERF_RESULT_DIR_BASE}/${OUTFILE}
 TOPDIR=${PWD}
 
 #--- Run the part 2 - generating the FG - on interrupt or exit
-trap 'cd ${TOPDIR}; sync ; ./2flameg.sh ${PDIR} ${SVG} ${STYLE_INVERTED_ICICLE} ${TYPE_CHART}' INT EXIT
+trap 'ls -lh perf.data; cd ${TOPDIR}; sync ; ./2flameg.sh ${PDIR} ${SVG} ${STYLE_INVERTED_ICICLE} ${TYPE_CHART}' INT EXIT
 #trap 'cd ${TOPDIR}; echo Aborting run... ; sync ; exit 1' QUIT
 #---
 

@@ -152,8 +152,8 @@ main(int argc, char **argv)
 	 * if this process crashes due to stack overflow; then it will receive the
 	 * SIGSEGV from the kernel (when it attempts to eat into unmapped memory
 	 * following the end of the stack)! The SIGSEGV signal handler must now run
-	 * But where? It cannot on the old stack - it's now corrupt! Hence, the
-	 * need for an alternate signal stack !
+	 * But where will *its* stack frame reside? It cannot reside on the old stack
+	 * - it's now corrupt! Hence, the need for an alternate signal stack.
 	 */
 	if (setup_altsigstack(10*1024*1024) < 0) {
 		fprintf(stderr, "%s: setting up alt sig stack failed\n", argv[0]);

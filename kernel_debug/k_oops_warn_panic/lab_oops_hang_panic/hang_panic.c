@@ -11,6 +11,8 @@
  * (c) kaiwan.
  * MIT
  */
+#define pr_fmt(fmt) "%s:%s(): " fmt, KBUILD_MODNAME, __func__
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -25,12 +27,11 @@
 //static void ding(unsigned long dope)
 static void ding(struct timer_list *timer)
 {
-	printk(KERN_INFO 
-		"%s: In timeout function \"ding\" now...\n", MODULE_NAME);
+	pr_info("In timeout function \"ding\" now...\n", MODULE_NAME);
 /*
-info: PID %d, interrupt-context: %d, processor # %d\n",
-	MODULE_NAME, dope, current->pid, 
-	in_interrupt() ? 1:0, smp_processor_id());
+	pr_info("PID %d, interrupt-context: %d, processor # %d\n",
+	current->pid, 
+	in_interrupt() ? 1:0, raw_smp_processor_id());
 	dump_stack();
 */
 }
@@ -47,13 +48,11 @@ PID %d running on processor # %d\n",
 	pr_info("%s setting up timer (1s) now..\n", MODULE_NAME);
 
 	/* >= 4.15 : init_timer(), etc replaced:
-	//init_timer (&timer);
 	timer_setup(timer, callback, flags) */
 	timer_setup(&mytimer, ding, 0);
 	/* timer expires when the jiffies var reaches this value */
-	mytimer.expires = jiffies+HZ;	/* 1 sec */
-	//timer.function = ding;
-	//timer.data = jiffies;
+	mytimer.expires = msecs_to_jiffies(1000); /* 1000ms = 1s */
+	pr_info("Arming the timer now!\n");
 	add_timer(&mytimer);
 }
 
@@ -72,10 +71,9 @@ static int __init hang_panic_init_module(void)
 		return -ERESTARTSYS;
 	}
 
-	pr_info("%s %s initialized\n",
-		MODULE_NAME, MODULE_VER);
-
+	pr_info("initialized\n");
  	try_timeout();
+
 	return 0;	// success
 }
 
@@ -94,4 +92,3 @@ module_exit(hang_panic_cleanup_module);
 MODULE_AUTHOR("Kaiwan NB");
 MODULE_DESCRIPTION("A simple module demo  - a subtle bug where a timer is set up.");
 MODULE_LICENSE("Dual MIT/GPL");
-/* End hang_panic.c */

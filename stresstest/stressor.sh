@@ -13,7 +13,7 @@
 #sudo stress -v --cpu 4 --io 4 --vm 4 --hdd 4 &
 # IO, disk
 echo "1. sudo stress -v --io 8 --hdd 8 --timeout $1"
-sudo stress -v --io 8 --hdd 8 --timeout $1
+sudo stress-ng -v --io 8 --hdd 8 --timeout $1
 # net
 echo "2. sudo stress-ng -v --all 0 --class network ? --timeout 3"
 sudo stress-ng -v --all 0 --class network ? --timeout 3

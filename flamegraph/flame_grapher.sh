@@ -55,7 +55,8 @@ exit 1
 ### "main" here
 
 which perf >/dev/null 2>&1 || {
- echo "${name}: perf not installed? Aborting..."
+ echo "${name}: perf not installed? Aborting...
+ Tip- (Deb/Ubuntu) sudo apt install linux-tools-$(uname -r) linux-tools-generic"
  exit 1
 }
 [ ! -f ./2flameg.sh ] && {

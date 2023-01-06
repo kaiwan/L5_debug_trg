@@ -56,7 +56,7 @@ $
 
 2. Capturing a FlameGraph of a particular process trace (VirtualBox)
 --------------------------------------------------------------------
-$ ./flame_grapher.sh 991798 vbox1
+$ ./flame_grapher.sh -p 991798 -o vbox1
 ### flame_grapher.sh: recording samples on process PID 991798 now... Press ^C to stop...
 ^C[ perf record: Woken up 14 times to write data ]
 [ perf record: Captured and wrote 5.476 MB perf.data (644 samples) ]

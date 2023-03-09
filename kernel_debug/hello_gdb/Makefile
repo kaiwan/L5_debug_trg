@@ -26,7 +26,7 @@ clean:
 else
 
 $(info Building with KERNELRELEASE = ${KERNELRELEASE}) 
-EXTRA_CFLAGS += -DDEBUG -g
+EXTRA_CFLAGS += -DDEBUG -g #-Wa,-a,-ad,-as
 obj-m :=    hello_gdb.o  
 
 endif

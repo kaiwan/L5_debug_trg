@@ -1,14 +1,13 @@
 /*
- * oops2.c
- * Slightly less Silly demo - make it Oops!
- * This time, by dereferencing an invalid (null) structure pointer..
+ * Silly demo - make it Oops!
+ * By dereferencing an invalid (null) structure pointer..
  *
  * Kaiwan NB, kaiwanTECH
  */
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/slab.h>
-#include "convenient.h"
+#include "../../convenient.h"
 
 MODULE_LICENSE("Dual MIT/GPL");
 
@@ -28,7 +27,7 @@ struct faker {
 	char dumb[7];		// use 56+7=63 bytes; now 1 byte left in this cacheline!
 	long bad_cache_align;	// use 63+8=71 bytes, thus spilling over the cacheline! Very naughty.
 };
-struct faker *f1 = NULL;
+struct faker *f1;
 
 static int __init oops2_init(void)
 {

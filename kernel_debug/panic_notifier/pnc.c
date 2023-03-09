@@ -5,7 +5,7 @@
  */
 #include <linux/init.h>
 #include <linux/module.h>
-#include <linux/panic_notifier.h>
+#include <linux/panic_notifier.h> // updated!
 
 MODULE_LICENSE("Dual MIT/GPL");
 

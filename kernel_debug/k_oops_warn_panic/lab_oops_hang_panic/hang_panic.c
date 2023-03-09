@@ -27,7 +27,7 @@
 //static void ding(unsigned long dope)
 static void ding(struct timer_list *timer)
 {
-	pr_info("In timeout function \"ding\" now...\n", MODULE_NAME);
+	pr_info("In timeout function \"ding\" now...\n");
 /*
 	pr_info("PID %d, interrupt-context: %d, processor # %d\n",
 	current->pid, 

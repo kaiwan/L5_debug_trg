@@ -6,6 +6,13 @@
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/panic_notifier.h> // updated!
+// see kernel commit f39650de687e35766572ac89dbcd16a5911e2f0a
+#include <linux/version.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 14, 0)
+#include <linux/panic_notifier.h>
+#else
+#include <linux/notifier.h>
+#endif
 
 MODULE_LICENSE("Dual MIT/GPL");
 

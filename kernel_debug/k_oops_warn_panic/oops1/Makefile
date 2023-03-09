@@ -27,7 +27,7 @@ else
 
 $(info Building with KERNELRELEASE = ${KERNELRELEASE}) 
 EXTRA_CFLAGS += -DDEBUG -g
-obj-m := oops1.o  
+obj-m := oops.o  
 
 endif
 

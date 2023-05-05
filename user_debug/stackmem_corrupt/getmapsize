@@ -1,0 +1,17 @@
+#!/bin/bash
+
+die()
+{
+  echo $@
+  exit 1
+}
+
+[ $# -ne 2 ] && die "Usage: $0 PID name-of-mapping
+  Eg. $0 1001 stack"
+kill -0 $1 || die "process PID $1 doesn't exist?"
+grep -q $2 /proc/$1/maps || die "no match for $2 in process maps file"
+END=$(grep "\[$2\]" /proc/$1/maps |cut -f1 -d' '|cut -f2 -d'-')
+START=$(grep "\[$2\]" /proc/$1/maps |cut -f1 -d' '|cut -f1 -d'-')
+size_hex=$(printf "0x%x\n" $((0x${END} - 0x${START})))
+size=$((size_hex))
+echo ${size}

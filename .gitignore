@@ -52,3 +52,11 @@ Mkfile.old
 dkms.conf
 
 kernel_debug/older/
+
+.*swp
+*.svg
+perf.data*
+bkp/
+*.tar*
+channel*
+Makefile.old*

@@ -1,0 +1,43 @@
+#!/bin/bash
+
+function die
+{
+echo >&2 "$@"
+exit 1
+}
+
+# runcmd
+# Parameters
+#   $1 ... : params are the command to run
+runcmd()
+{
+[ $# -eq 0 ] && return
+echo "$@"
+eval "$@"
+}
+
+DDIR=/home/c2kp/damon_test/damo
+#DAMO=${DDIR}/damo
+
+who=$(whoami)
+# run PUT
+TMOUT_SEC=8
+PUT=mem1
+runcmd "timeout ${TMOUT_SEC} ./${PUT} >/dev/null &"
+PUT_PID=$(pidof -s mem1)
+sleep .1
+[[ -z "${PUT_PID}" ]] && {
+  echo "PUT not running?" ; exit 1
+}
+
+TOP=$(pwd)
+cd ${DDIR}
+#runcmd "sudo ./damo features"
+#runcmd "sudo ./damo monitor ${PUT_PID}"
+#PUT_PID=1
+ps -e|grep mem1
+runcmd "sudo ./damo record -o damon.data ${PUT_PID}"
+runcmd "sudo ./damo report wss --plot ${TOP}/wss1.png ; sudo chown ${who}:${who} ${TOP}/wss1.png"
+runcmd "sudo ./damo report heats --heatmap ${TOP}/access_pattern_heatmap.png ; sudo chown ${who}:${who} ${TOP}/access_pattern_heatmap.png"
+#exit 0
+

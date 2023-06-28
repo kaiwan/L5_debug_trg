@@ -1,0 +1,28 @@
+#!/bin/bash
+name=$(basename $0)
+
+# Must boot w/ the k cmdline param 'crashkernel=Y@X' ; on x86-64, 'crashkernel=256M' is sufficient
+grep "crashkernel" /proc/cmdline >/dev/null || {
+  echo "${name}: System not booted with the crashkernel=Y@X parameter?" ; exit 1
+}
+
+which kexec >/dev/null || {
+  echo "${name}: kexec-tools not installed?
+Please first install it and retry...
+(Pkg: http://kernel.org/pub/linux/utils/kernel/kexec/kexec-tools.tar.gz)"
+  exit 1
+}
+
+# Loading the dump-capture kernel into reserved RAM:
+echo "${name}: Loading the $(uname -r) dump-capture kernel into reserved RAM"
+ROOT_UUID=$(\grep -o "root=UUID=.*" /proc/cmdline |awk '{print $1}')
+[[ -z "${ROOT_UUID}" ]] && {
+  echo "${name}: Root disk UUID not obtained, aborting" ; exit 1
+}
+sudo kexec -p /boot/vmlinuz-$(uname -r) --initrd /boot/initrd.img-$(uname -r) \
+ --append "irqpoll nr_cpus=1 reset_devices ${ROOT_UUID} 3"
+[[ $? -ne 0 ]] && {
+  echo "${name}: kexec failed, aborting" ; exit 1
+} || {
+  echo "${name}: kexec success" ; exit 0
+}

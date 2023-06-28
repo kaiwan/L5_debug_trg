@@ -1,0 +1,37 @@
+#!/bin/bash
+name=$(basename $0)
+
+usage()
+{
+echo "Usage: ${name} [kernel-config-file]"
+}
+
+[[ $1 = "-h" ]] && {
+  usage ; exit 0
+}
+if [[ $# -ge 1 ]] ; then
+   KCONFIG=$1
+else
+   # NOTE! ASSUMING arch is x86-64
+   KCONFIG=/boot/config-$(uname -r)
+fi
+
+[[ ! -f ${KCONFIG} ]] && {
+   echo "${name}: kernel config file ${KCONFIG} not found, aborting" ; exit 1
+}
+echo "Kernel config file: ${KCONFIG}"
+
+# From https://docs.kernel.org/admin-guide/kdump/kdump.html 
+KCONFIGS_ARR=(KEXEC KEXEC_CORE CRASH_CORE SYSFS DEBUG_INFO CRASH_DUMP PROC_VMCORE RELOCATABLE)
+
+for KCONF in ${KCONFIGS_ARR[@]} ; do
+    printf "checking for CONFIG_%-15s" ${KCONF}
+    grep "CONFIG_${KCONF}" ${KCONFIG} >/dev/null 2>&1
+    [[ $? -ne 0 ]] && printf "   NOT found!\n" || printf "   [OK]\n"
+done
+exit 0
+
+# Now boot w/ the k cmdline param 'crashkernel=Y@X' ; on x86-64, 'crashkernel=256M' is sufficient
+# Loading the dump-capture kernel into reserved RAM:
+#sudo kexec -p /boot/vmlinuz-5.10.153 --initrd /boot/initrd.img- 5.10.153 \
+# --append "irqpoll nr_cpus=1 reset_devices root=UUID=b67e<...> 3"

@@ -103,14 +103,14 @@ static struct stVnetIntfCtx *gpstCtx;
 static int tx_pkt_count;	//, rx_pkt_count;
 static int vnet_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 {
-	struct iphdr *ip;
-	struct udphdr *udph;
+	struct iphdr *ip = NULL;
+	struct udphdr *udph = NULL;
 	struct stVnetIntfCtx *pstCtx = netdev_priv(ndev);
 
 //#define SHOW_TIME_SPINLOCK_HELD
 #undef SHOW_TIME_SPINLOCK_HELD
 #ifdef SHOW_TIME_SPINLOCK_HELD
-	u64 ts1, ts2;
+	u64 ts1=4, ts2=5; // this is just for checking w/ crash; (actually, being unused, these vars will get optimized away)
 #endif
 
 	if (!skb) {		// paranoia!
@@ -151,6 +151,7 @@ skb-> head data                                                        tail   en
 	//------------------------------
 
 	pr_info("ah, a UDP packet Tx via our app (dest port %d)\n", PORTNUM);
+	pr_debug("skb=%px netdev=%px pstCtx=%px\n", skb, ndev, pstCtx);
 	SKB_PEEK(skb);
 
 #if 0				// already seen with the SKB_PEEK()

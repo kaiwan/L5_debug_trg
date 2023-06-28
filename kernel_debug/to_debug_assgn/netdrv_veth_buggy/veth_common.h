@@ -45,8 +45,6 @@
 /*
  * SKB_PEEK : glean info about the passed socket buffer, esp it's memory (n/w packet).
  * Ref: http://vger.kernel.org/~davem/skb_data.html
- * Minor note: The printk o/p of print_hex_dump_bytes may not appear straight away
- * (on minicom) due to the KERN_ loglevel it's written at; use dmesg to see everything...
  */
 #define SKB_PEEK(skb) do { \
 	PRINT_CTX(); \
@@ -68,7 +66,7 @@
 	skb->end, \
 	(skb->end-skb->tail)   /* tailroom len */ \
 	);    \
-	if (0) \
+	if (1) \
 	  dev_kfree_skb(skb); \
 	pr_debug("////////////////////////\n");    \
 	/* print_hex_dump_bytes() dumps at KERN_DEBUG if DEBUG is defined  */ \

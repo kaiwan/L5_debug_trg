@@ -110,7 +110,8 @@ static int vnet_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 //#define SHOW_TIME_SPINLOCK_HELD
 #undef SHOW_TIME_SPINLOCK_HELD
 #ifdef SHOW_TIME_SPINLOCK_HELD
-	u64 ts1=4, ts2=5; // this is just for checking w/ crash; (actually, being unused, these vars will get optimized away)
+	u64 ts1=4, ts2=5; /* this is just for checking w/ crash;
+		(actually, being unused, these vars will get optimized away) */
 #endif
 
 	if (!skb) {		// paranoia!
@@ -164,15 +165,14 @@ skb-> head data                                                        tail   en
 #ifdef SHOW_TIME_SPINLOCK_HELD
 	ts1 = ktime_get_real_ns();
 #endif
-
+	// Update 'stats'
+	// TODO : use atomic ops
 	pstCtx->txpktnum = ++tx_pkt_count;
 	pstCtx->tx_bytes += skb->len;
-
 #ifdef SHOW_TIME_SPINLOCK_HELD
 	ts2 = ktime_get_real_ns();
 #endif
 	spin_unlock(&pstCtx->lock);
-
 #ifdef SHOW_TIME_SPINLOCK_HELD
 	SHOW_DELTA(ts2, ts1);
 #endif

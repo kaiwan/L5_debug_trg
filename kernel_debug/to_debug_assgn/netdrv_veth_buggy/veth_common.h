@@ -5,9 +5,6 @@
 #ifndef __VETH_COMMON_H__
 #define __VETH_COMMON_H__
 
-#define PORTNUM     54295 // the port users will be connecting to
-#define INTF_NAME  "veth"
-
 #ifdef __KERNEL__
 #define pr_fmt(fmt) "%s:%s(): " fmt, KBUILD_MODNAME, __func__
 
@@ -26,14 +23,12 @@
 #include <linux/ip.h>
 #include <linux/udp.h>
 #include <linux/debugfs.h>
-
 #include "convenient.h"
 
-#define DRVNAME		"vnet"
-//#define INTF_NAME	"veth"	// this is the interface emulated by the 'static'
-				// packet generation ver of this driver
-//#define PORTNUM		54295
+#define PORTNUM     54295 // the port users will be connecting to
+#define INTF_NAME  "veth"
 
+#define DRVNAME		"vnet"
 #define DUMP_PKTS	1
 #define	Print_hex_dump_bytes(prefix_str, prefix, dataptr, len)    do { \
 	if (DUMP_PKTS)  \
@@ -66,7 +61,7 @@
 	skb->end, \
 	(skb->end-skb->tail)   /* tailroom len */ \
 	);    \
-	if (1) \
+	if (skb) \
 	  dev_kfree_skb(skb); \
 	pr_debug("////////////////////////\n");    \
 	/* print_hex_dump_bytes() dumps at KERN_DEBUG if DEBUG is defined  */ \

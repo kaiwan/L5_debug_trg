@@ -1,0 +1,33 @@
+#!/bin/bash
+# Demo of the kernel's awesome dynamic debug facility
+
+CTRL=/proc/dynamic_debug/control
+
+die() {
+echo >&2 "FATAL: $@"
+exit 1
+}
+cleanup()
+{
+# Turn OFF debug printk callsites for all files with 'tcp' and 'ip'
+# in their name
+echo "Turn OFF debug printk callsites ..."
+echo -n 'file *tcp* -pflmt' > ${CTRL} || die "couldn't write to dynamic dbg ctrl file ${CTRL}"
+echo -n 'file *ip* -pflmt' > ${CTRL} || die "couldn't write to dynamic dbg ctrl file ${CTRL}"
+}
+
+[[ $(id -u) -ne 0 ]] && die "Needs root."
+
+trap 'cleanup' EXIT INT QUIT
+
+# Turn ON debug printk callsites for all files with 'tcp' and 'ip'
+# in their name
+echo "Turn ON debug printk callsites ..."
+echo -n 'file *tcp* +pflmt' > ${CTRL} || die "couldn't write to dynamic dbg ctrl file ${CTRL}"
+echo -n 'file *ip* +pflmt' > ${CTRL} || die "couldn't write to dynamic dbg ctrl file ${CTRL}"
+
+# Ping something while watching the kernel log...
+ping -c5 yahoo.com >/dev/null &
+journalctl -f -k
+
+exit 0

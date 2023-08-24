@@ -29,5 +29,8 @@ echo -n 'file *ip* +pflmt' > ${CTRL} || die "couldn't write to dynamic dbg ctrl 
 # Ping something while watching the kernel log...
 ping -c5 yahoo.com >/dev/null &
 journalctl -f -k
+<<<<<<< HEAD
 
+=======
+>>>>>>> 116752785009c95644593b7fb35b0dd881a3cda8
 exit 0

@@ -1,8 +1,8 @@
 # Makefile
 
 CC=gcc
-CFLAGS_DBG=-D_REENTRANT -DDBG -g -ggdb -O0 -Wall
-CFLAGS=-D_REENTRANT -Wall
+CFLAGS_DBG=-DDEBUG -g -ggdb -O0 -Wall
+CFLAGS=-Wall -O2
 
 # Cross toolchain compile for the utils on BeagleBoard (or whatever)
 # Update XTOOL var below to your toolchain prefix

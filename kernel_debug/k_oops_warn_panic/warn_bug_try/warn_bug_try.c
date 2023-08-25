@@ -13,19 +13,19 @@ MODULE_LICENSE("Dual BSD/GPL");
 static int __init warn_bug_try_init(void)
 {
 	int n=5;
-	printk(KERN_ALERT "Hello, world\n");
+	pr_info("Hello, world\n");
 #if 1
 	WARN((1==1), "%d: WARN try :)", n);
 #else
-	panic("Yea panic-king..\n");
+	panic("Yes, am panic-king...\n");
 #endif
 	return 0;
 }
 
 static void __exit warn_bug_try_exit(void)
 {
-	printk(KERN_ALERT "Goodbye, invoking BUG now...\n");
-#if 1
+	pr_info("Goodbye, invoking BUG now...\n");
+#if 0
 	BUG();  /* Are u sure!? BUG() calls panic() internally,
 	           you _will_ need to restart. */
 #endif

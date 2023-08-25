@@ -1,44 +1,38 @@
 #!/bin/bash
 # netcon_send.sh
+
+die()
+{
+echo >&2 "FATAL: $@"
+exit 1
+}
+
 name=$(basename $0)
+#SENDER_INTF=enp0s8
 
-#-------- KEEP UPDATED
-INTF=enp0s8
-#---------------------
+lsmod|grep netconsole >/dev/null && die "${name}: netconsole already loaded"
+[[ $# -ne 2 ]] && die "Usage: ${name} sender-net-interface receiver-IP-address"
 
-[ $# -ne 1 ] && {
-  echo "Usage: ${name} receiver-IP-address"
-  exit 1
-}
-SENDTO_IP="$1"
+SENDER_INTF="$1"
+SENDTO_IP="$2"
+ip a | grep -w ${SENDER_INTF} > /dev/null || die "Specified sender n/w interface - ${SENDER_INTF} - not found?"
 
-lsmod|grep -q netconsole && {
-  echo "${name}: netconsole already loaded"
-  exit 1
-}
-
-# get IP address
-ip=$(ip a|grep  -w "${INTF}" |grep "^ *inet "|awk '{print $2}'|sed 's/...$//')
-[ -z "${ip}" ] && {
-  echo "${name}: couldn't fetch IP addr"
-  exit 1
-}
+ip=$(ip a|grep  -w "${SENDER_INTF}" |grep "^ *inet "|awk '{print $2}'|sed 's/...$//')
+[[ -z "${ip}" ]] && die "${name}: couldn't fetch IP addr"
 
 # Install the netconsole LKM
 # netconsole module parameter format:
 #  netconsole=[+][src-port]@[src-ip]/[<dev>],[tgt-port]@<tgt-ip>/[tgt-macaddr]
-sudo modprobe netconsole netconsole=@${ip}/${INTF},@${SENDTO_IP}/
-[ $? -ne 0 ] && {
-  echo "${name}: modprobe netconsole failed"
-  exit 1
-}
-echo "OK, netconsole LKM running ...
+sudo modprobe netconsole netconsole=@${ip}/${SENDER_INTF},@${SENDTO_IP}/
+[[ $? -ne 0 ]] && die "${name}: modprobe netconsole failed"
+
+echo "OK, the netconsole module is running ...
+$(lsmod|grep netconsole)
+
 Receive this system's kernel printk's by doing this on the receiver:
  netcat -d -u -l 6666
 
 (Can test with:
-sudo sh -c "echo \"Hello via netconsole\" > /dev/kmsg"
-)
-"
-#lsmod|grep netconsole
+sudo sh -c \"echo \"Hello via netconsole\" > /dev/kmsg\"
+)"
 exit 0

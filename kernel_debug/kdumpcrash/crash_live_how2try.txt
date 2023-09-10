@@ -1,13 +1,14 @@
-crash
+crash:
 
-Running the 'crash' demo - 'live' mode:
+Running the 'crash' demo in 'live' mode:
 
-1. Run the 'Seawolf-KNB' VM via VirtualBox
-2. Select the '5.4.1' kernel (can boot in runlevel 3)
-3. Simply run it:
+1. Run your (Ubuntu) VM via VirtualBox
+2. Select an appropriate kernel - one for which you have the vmlinux (uncompressed)
+   image built with debug symbolic info, i.e. with CONFIG_DEBUG_INFO=y. (Can boot in runlevel 3)
+3. Simply run crash:
  $ sudo crash
  ...
- crash 7.2.8
+crash 7.2.8
 Copyright (C) 2002-2020  Red Hat, Inc.
 ...
 GNU gdb (GDB) 7.6
@@ -36,6 +37,6 @@ LOAD AVERAGE: 0.43, 0.10, 0.03
 
 crash> 
 
-It locates the kernel vmlinux here:
+It locates the kernel vmlinux, for example, here:
   /lib/modules/5.4.1/build/vmlinux 
 

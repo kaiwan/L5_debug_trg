@@ -1,3 +1,7 @@
+# Meant to be used like this:
+# sudo crash </pth/to/vmlinux/> {dumpfile.img -or- /proc/kcore} < crash_getinfo > report.txt
+#                          For:   kdump image -or- live kernel
+
 echo "=== System Info ==="
 echo "--- sys ---"
 sys
@@ -22,6 +26,3 @@ echo "--- vm ---"
 vm
 
 exit
-
-# Meant to be used like this:
-# sudo crash /lib/modules/5.4.1/build/vmlinux {dumpfile.img -or- /proc/kcore} < crash_getinfo > report.txt

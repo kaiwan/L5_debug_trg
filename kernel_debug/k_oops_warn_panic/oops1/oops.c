@@ -1,5 +1,5 @@
 /*
- * oops2.c
+ * oops.c
  * Silly demo - make it Oops!
  * Kaiwan NB, kaiwanTECH
  */
@@ -9,7 +9,7 @@
 #include <linux/slab.h>
 
 MODULE_LICENSE("Dual BSD/GPL");
-char *ptr = NULL;
+char *ptr = NULL; /* checkpatch says: ERROR: do not initialise globals to NULL */
 
 static int __init oops2_init(void)
 {

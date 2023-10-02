@@ -4,7 +4,7 @@
 # Besides the 'usual' targets to build production and debug versions of the
 # code and cleanup, we incorporate targets to do useful (and indeed required)
 # stuff like:
-#  - prod_2part: build a '2-part' production target 'prod_2part'; it's
+#  - prod_2part: build a '2-part' production target 'xxx_rel'; it's
 #     -O2, no debug symbolic info, strip-debug;
 #     Excellent for production as it gives ability to debug as and when required!
 #  - indent: adhering to (Linux kernel) coding style guidelines (indent+checkpatch)
@@ -26,7 +26,7 @@
 
 ## Pl check and keep or remove <foo>_dbg_[asan|ub|msan] targets
 ## (where <foo> is the program name) as desired.
-ALL :=  prod prod_2part
+ALL := prod_2part
 
 ###
 # Update as required
@@ -36,7 +36,7 @@ ALL :=  prod prod_2part
 # Also, it's recommended to keep one Makefile per program in separate directories.
 ###
 FNAME_C = 1_buggy
-ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_2part ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov
+ALL_NM :=  ${FNAME_C}_rel ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov
 
 CC=${CROSS_COMPILE}gcc
 CL=${CROSS_COMPILE}clang
@@ -68,30 +68,28 @@ CHECKPATCH := /lib/modules/$(shell uname -r)/build/scripts/checkpatch.pl
 
 # Targets and their rules
 # Three types:
-# 1. 'regular' production target 'prod': -O2, no debug symbolic info, stripped
+# 1. 'regular' production target 'prod': -O2, no debug symbolic info, stripped.
+#    We don't have it here, as the next one - 2-part - generates this.
 # 2. '2-part' production target 'prod_2part': -O2, no debug symbolic info, strip-debug;
 #     excellent for production as it gives ability to debug as and when required!
 #     (internally invokes the 'debug' target as it requires the debug binary as well
 # 3. 'debug' target(s): -O0, debug symbolic info (-g -ggdb), not stripped
-prod: ${FNAME_C}.c
-	@echo
-	@echo "--- building 'production'-ready target (-O2, no debug, stripped) ---"
-	@echo
-	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C}
-	${STRIP} --strip-all ./${FNAME_C}
 
 # The '2-part executable' solution : use strip and objcopy to generate a
 # binary executable that has the ability to retrieve debug symbolic information
 # from the 'debug' binary!
 prod_2part: ${FNAME_C}.c
 	@echo
-	@echo "--- building 'production'-ready 2-part target (-O2, no debug, strip-debug) ---"
+	@echo "--- building 'production'-ready 2-part target ${FNAME_C}_rel (-O2, no debug, strip-debug) ---"
 	@echo
 # We require the 'debug' build for the 2part, so do that first
 	make debug
-	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C}_2part
-	${STRIP} --strip-debug ./${FNAME_C}_2part
-	objcopy --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}_2part
+# Now build the regular optimized binary (without symbols) and ...
+	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C}_rel
+# ... strip it, and ...
+	${STRIP} --strip-debug ./${FNAME_C}_rel
+# ... most IMP, setup the 'debug link' to it, in effect, the 2part solution!
+	objcopy --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}_rel
 
 debug: ${FNAME_C}.c
 	@echo
@@ -197,7 +195,7 @@ help:
 	@echo 'Regular targets ::'
 	@echo ' 1. 'prod'  : regular production target: -O2, no debug symbolic info, stripped'
 	@echo ' 2. 'debug' : -O0, debug symbolic info (-g -ggdb), not stripped'
-	@echo ' 3. 'prod_2part': production target : -O2, no debug symbolic info, strip-debug; \
+	@echo ' 3. 'prod_2part': production target : ${FNAME_C}_rel : -O2, no debug symbolic info, strip-debug; \
     Excellent for production as it gives ability to debug as and when required! \
     (shown as third option as it *requires* the 'debug' build'
 	@echo

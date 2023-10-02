@@ -113,8 +113,15 @@ sudo chown -R ${USERNM}:${USERNM} ${TOPDIR}/${1}/ 2>/dev/null
 cd ${TOPDIR}
 ls -lh ${1}/${OUTFILE}
 echo
-echo "View the above SVG file in your web browser to see and zoom into the CPU FlameGraph."
 
 echo "<NOTES:> in the SVG (if any):"
 grep -w "NOTES\:" ${1}/${OUTFILE}
+
+# Display in chrome !
+if [[ -f $(which google-chrome-stable) ]] ; then
+  nohup google-chrome-stable --incognito --new-window ${1}/${OUTFILE} &
+else
+  echo "View the above SVG file in your web browser to see and zoom into the CPU FlameGraph."
+fi
+
 #exit 0

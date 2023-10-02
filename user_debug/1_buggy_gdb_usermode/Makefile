@@ -12,16 +12,16 @@
 
 CC := ${CROSS_COMPILE}gcc
 DBG_FLAGS := -g -ggdb -gdwarf-4 -O0 -DDEBUG
-x86_ALL := 1_buggy_nosym 1_buggy_sym buggy-CORRECTED 1_buggy_sym_32 1_buggy_nosym_32 
+x86_ALL := 1_buggy_rel 1_buggy_dbg buggy-CORRECTED 1_buggy_sym_32 1_buggy_nosym_32 
 x86_all: ${x86_ALL}
 ARM_ALL := arm_1_buggy_nosym arm_1_buggy_sym arm_buggy_CORRECTED
 arm_all: ${ARM_ALL}
 
-1_buggy_sym: 1_buggy.c
-	${CC} ${DBG_FLAGS} 1_buggy.c -o 1_buggy_sym -Wall
-1_buggy_nosym: 1_buggy.c
-	${CC} -O2 1_buggy.c -o 1_buggy_nosym -Wall
-	strip --strip-all 1_buggy_nosym
+1_buggy_dbg: 1_buggy.c
+	${CC} ${DBG_FLAGS} 1_buggy.c -o 1_buggy_dbg -Wall
+1_buggy_rel: 1_buggy.c
+	${CC} -O2 1_buggy.c -o 1_buggy_rel -Wall
+	strip --strip-all 1_buggy_rel
 buggy-CORRECTED: buggy_CORRECTED.c
 	${CC} ${DBG_FLAGS} buggy_CORRECTED.c -o buggy_CORRECTED -Wall
 
@@ -41,7 +41,7 @@ arm_buggy_CORRECTED: buggy_CORRECTED.c
 
 disas_arm_sym:
 	$(info Invoking helper script ./disas_arm.sh now..)
-	./disas_arm.sh arm_1_buggy_sym
+	./disas_arm.sh arm_1_buggy_dbg
 
 clean:
 	rm -f *.o ${x86_ALL} ${ARM_ALL}

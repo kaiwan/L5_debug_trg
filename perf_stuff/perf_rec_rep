@@ -23,10 +23,17 @@ runcmd()
 SAMPLING_FREQ=99
 TIME=10s
 
-cleanup() {
+process_report()
+{
+  echo "
+[+] Reporting ..."
   runcmd "perf report --sort cpu,comm --stdio"
+  runcmd "perf script -i perf.data > profile_data.txt"
+  chown ${LOGNAME}:${LOGNAME} profile_data.txt
+# TIP: we've exported the trace to a file; u can try importing it here:
+#  https://www.speedscope.app/
 }
-trap cleanup INT QUIT
+trap process_report INT QUIT
 
 test1_fork()
 {
@@ -39,10 +46,6 @@ test1_fork()
   # -C 0 : only on cpu #0
 	#-- taskset 01 stress-ng --fork 1 \
 	#-- taskset 01 stress-ng --io 1 \
-
-  echo "
-[+] test1_fork(): reporting ..."
-  runcmd "perf report --sort cpu,comm --stdio"
 }
 
 test2_matrixmul_pthrd()
@@ -56,10 +59,6 @@ test2_matrixmul_pthrd()
 	--call-graph dwarf \
 	-- ${PRG}"
   # -a : sample across all cpu cores
-
-  echo "
-[+] test2_matrixmul_pthrd(): reporting ..."
-  runcmd "perf report --sort cpu,comm --stdio"
 }
 
 #--
@@ -88,10 +87,6 @@ test3_cpusched_mt_demo()
 	--call-graph dwarf \
 	-- taskset 01 ${PRG} ${ARGS}"
   # -C 0 : only on cpu #0
-
-  echo "
-[+] test3_cpusched_mt_demo(): reporting ..."
-  runcmd "perf report --sort cpu,comm --stdio"
 }
 
 test4_fork_exit()
@@ -105,10 +100,6 @@ test4_fork_exit()
 	--call-graph dwarf \
 	-- taskset 02 ${PRG}"
   # -a : sample across all cpu cores
-
-  echo "
-[+] test4_fork_exit(): reporting ..."
-  runcmd "perf report --sort cpu,comm --stdio"
 }
 
 
@@ -124,4 +115,5 @@ echo
 
 #test4_fork_exit()
 
+process_report
 exit 0

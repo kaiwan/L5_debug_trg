@@ -94,6 +94,23 @@ test3_cpusched_mt_demo()
   runcmd "perf report --sort cpu,comm --stdio"
 }
 
+test4_fork_exit()
+{
+  local PRG=./fork_test_dbg
+  [[ ! -f ${PRG} ]] && die "Program \"${PRG}\" not found."
+
+  echo "[+] test4_fork_exit(): recording ... pl wait ..."
+  runcmd "perf record -F ${SAMPLING_FREQ} \
+	-C 1 \
+	--call-graph dwarf \
+	-- taskset 02 ${PRG}"
+  # -a : sample across all cpu cores
+
+  echo "
+[+] test4_fork_exit(): reporting ..."
+  runcmd "perf report --sort cpu,comm --stdio"
+}
+
 
 #--- 'main' ---
 [[ $(id -u) -ne 0 ]] && die echo "${name}: need root."
@@ -103,6 +120,8 @@ test1_fork
 echo
 
 #test3_cpusched_mt_demo 0  # without symbols
-test3_cpusched_mt_demo 1  # with symbols (in the app only)
+#test3_cpusched_mt_demo 1  # with symbols (in the app only)
+
+#test4_fork_exit()
 
 exit 0

@@ -23,15 +23,22 @@ runcmd()
 SAMPLING_FREQ=99
 TIME=10s
 
+cleanup() {
+  runcmd "perf report --sort cpu,comm --stdio"
+}
+trap cleanup INT QUIT
+
 test1_fork()
 {
   echo "[+] test1_fork(): recording ... pl wait for time of ${TIME} ..."
   runcmd "perf record -F ${SAMPLING_FREQ} \
 	-C 0 \
 	--call-graph dwarf \
-	-- taskset 01 stress-ng --fork 1 \
+	-- taskset 01 stress-ng --io 1 \
 	-t ${TIME}"
   # -C 0 : only on cpu #0
+	#-- taskset 01 stress-ng --fork 1 \
+	#-- taskset 01 stress-ng --io 1 \
 
   echo "
 [+] test1_fork(): reporting ..."
@@ -55,6 +62,9 @@ test2_matrixmul_pthrd()
   runcmd "perf report --sort cpu,comm --stdio"
 }
 
+#--
+# Src for this demo's here:
+#  https://github.com/kaiwan/cpu_sched_demo
 # Params
 #  $1 : 0 = run the prg ver compiled without symbols
 #       1 = run the prg ver compiled with symbols
@@ -93,6 +103,6 @@ test1_fork
 echo
 
 #test3_cpusched_mt_demo 0  # without symbols
-test3_cpusched_mt_demo 1  # with symbols
+test3_cpusched_mt_demo 1  # with symbols (in the app only)
 
 exit 0

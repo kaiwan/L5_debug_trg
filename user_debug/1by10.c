@@ -5,7 +5,8 @@
  * clearly demonstrating how the number of digits of precision matters!
  * (Here, the 55111... portion begins after 18 digits! If the register holding
  * the result is smaller, it gets truncated. With something like a missile
- * tracking system, the truncation can be literally fatal!).
+ * tracking system, this truncation can be quite literally fatal! ...As was the
+ * case with the Patriot missile killer in the Gulf War in 1991).
  */
 #include <stdio.h>
 double res = 0;

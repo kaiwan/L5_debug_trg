@@ -30,8 +30,7 @@ process_report()
   runcmd "perf report --sort cpu,comm --stdio"
   runcmd "perf script -i perf.data > profile_data.txt"
   chown ${LOGNAME}:${LOGNAME} profile_data.txt
-# TIP: we've exported the trace to a file; u can try importing it here:
-#  https://www.speedscope.app/
+# TIP: we've exported the trace to a file; u can try
 }
 trap process_report INT QUIT
 
@@ -41,7 +40,7 @@ test1_fork()
   runcmd "perf record -F ${SAMPLING_FREQ} \
 	-C 0 \
 	--call-graph dwarf \
-	-- taskset 01 stress-ng --io 1 \
+	-- taskset 01 stress-ng --malloc 1 \
 	-t ${TIME}"
   # -C 0 : only on cpu #0
 	#-- taskset 01 stress-ng --fork 1 \

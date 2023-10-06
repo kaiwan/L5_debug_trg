@@ -14,7 +14,7 @@
 name=$(basename $0)
 export FLMGR=~/FlameGraph  # location of code
 PERF_RESULT_DIR_BASE=/tmp/flamegraphs # change to make it non-volatile
-STYLE_INVERTED_ICICLE=1
+STYLE_INVERTED_ICICLE=0
 TYPE_CHART=0
 HZ=99
 
@@ -31,8 +31,8 @@ usage()
 Optional switches:
  [-p PID]     : PID = generate a FlameGraph for ONLY this process or thread
                  If not passed, the *entire system* is sampled...
- [-s <style>] : icicle = draw the stack frames growing downward [default]
-                normal = draw the stack frames growing upward
+ [-s <style>] : normal = draw the stack frames growing upward   [default]
+                icicle = draw the stack frames growing downward
  [-t <type>]  : graph  = produce a flame graph (X axis is NOT time, merges stacks) [default]
                    Good for performance outliers (who's eating CPU? using max stack?); works well for multi-threaded apps
                 chart  = produce a flame chart (sort by time, do not merge stacks)

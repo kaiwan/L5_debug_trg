@@ -26,8 +26,8 @@
 #include <netdb.h>
 #include "../veth_common.h"
 
-//#define PORTNUM 54295 // the port users will be connecting to
-//#define INTF   "veth"
+#define PORTNUM 54295 // the port users will be connecting to
+#define INTF   "veth"
 
 static int send_pkt(int counter, int sd, char *dest_ip, char *msg)
 {
@@ -99,14 +99,14 @@ int main(int argc, char *argv[])
 #if 1
 	// Should be running as root!
 	if (setsockopt
-	    (sockfd, SOL_SOCKET, SO_BINDTODEVICE, INTF_NAME,
-	     strlen(INTF_NAME)) < 0) {
+	    (sockfd, SOL_SOCKET, SO_BINDTODEVICE, INTF,
+	     strlen(INTF)) < 0) {
 		printf("\n%s:setsockopt failed...\n", argv[0]);
 		close(sockfd);
 		exit(1);
 	}
 	printf("%s: successfully bound to interface '%s'\n", argv[0],
-	       INTF_NAME);
+	       INTF);
 #endif
 	i = 1;
 	while (1) {

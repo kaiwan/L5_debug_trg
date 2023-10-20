@@ -24,6 +24,17 @@ ip=$(ip a|grep  -w "${SENDER_INTF}" |grep "^ *inet "|awk '{print $2}'|sed 's/...
 sudo modprobe netconsole netconsole=@${ip}/${SENDER_INTF},@${SENDTO_IP}/
 [[ $? -ne 0 ]] && die "${name}: modprobe netconsole failed"
 
+# TIP
+# Must see klog looking like this (then it typically works!):
+# [  260.203296] netpoll: netconsole: local port 6666
+# [  260.203299] netpoll: netconsole: local IPv4 address 192.168.1.22
+# [  260.203300] netpoll: netconsole: interface 'enp0s8'
+# [  260.203301] netpoll: netconsole: remote port 6666
+# [  260.203302] netpoll: netconsole: remote IPv4 address 192.168.1.25
+# [  260.203303] netpoll: netconsole: remote ethernet address ff:ff:ff:ff:ff:ff
+# [  260.203350] printk: console [netcon0] enabled
+# [  260.203353] netconsole: network logging started
+
 echo "OK, the netconsole module is running ...
 $(lsmod|grep netconsole)
 

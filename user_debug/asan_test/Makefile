@@ -20,21 +20,22 @@
 ## as desired. We have deliberately not kept the sanitizer targets; add
 ## them to the 'ALL := ' statement if you wish to build them by default.
 
-ALL :=  membugs membugs_dbg membugs_dbg_asan membugs_dbg_ub
+ALL :=  membugs membugs_dbg membugs_dbg_asan membugs_dbg_msan membugs_dbg_ub
 
-CC=${CROSS_COMPILE}gcc
-#CC=${CROSS_COMPILE}clang
+#CC=${CROSS_COMPILE}gcc
+CC=${CROSS_COMPILE}clang
 
 CFLAGS=-O2 -Wall -Wextra -UDEBUG
 CFLAGS_DBG=-g -O0 -Wall -Wextra -DDEBUG
 CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address -fsanitize-address-use-after-scope
-#CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
+CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
 
 LINKIN := -static-libasan
  # user will need to explicitly set libraries to link in as required;
  # f.e. -lrt -pthread
  # TODO : On Fedora with clang, the directive should be : -static-libsan
+ # (clang doesn't require the lib to be statically linked?)
 
 all: ${ALL}
 CB_FILES := *.[ch]
@@ -48,6 +49,8 @@ membugs_dbg: membugs.c
  #--- Sanitizers for membugs :: (use clang): <foo>_dbg_[asan|ub|msan]
 membugs_dbg_asan: membugs.c
 	${CC} ${CFLAGS_DBG_ASAN} membugs.c -o membugs_dbg_asan #-static-libasan
+membugs_dbg_msan: membugs.c
+	clang ${CFLAGS_DBG_MSAN} membugs.c -o membugs_dbg_msan
 membugs_dbg_ub: membugs.c
 	${CC} ${CFLAGS_DBG_UB} membugs.c -o membugs_dbg_ub
 

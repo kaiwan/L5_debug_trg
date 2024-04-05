@@ -236,8 +236,11 @@ static const struct net_device_ops vnet_netdev_ops = {
 /*
 FIXME: [  579.273860] Device 'vnet.0' does not have a release() function, it is broken and must be fixed.
 */
+#if 0
+static u8 veth_MAC_addr[6] = { 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
+#else
 static u8 veth_MAC_addr[6] = { 0x48, 0x0F, 0x0E, 0x0D, 0x0A, 0x02 };
-
+#endif
 static int vnet_probe(struct platform_device *pdev)
 {
 	struct net_device *ndev = NULL;
@@ -260,7 +263,7 @@ static int vnet_probe(struct platform_device *pdev)
 
 	ether_setup(ndev);
 	strlcpy(ndev->name, INTF_NAME, strlen(INTF_NAME) + 1);
-	memcpy(ndev->dev_addr, veth_MAC_addr, sizeof(veth_MAC_addr));
+	memcpy((void *)ndev->dev_addr, veth_MAC_addr, sizeof(veth_MAC_addr));
 
 #if 0
 	MAC addr..ndo methods:open xmit stop get_stats do_ioctl ? iomem addr irq

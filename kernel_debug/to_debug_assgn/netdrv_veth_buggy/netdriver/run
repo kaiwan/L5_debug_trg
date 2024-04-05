@@ -1,9 +1,9 @@
 #!/bin/bash
 DRV=veth_netdrv
 make && {
-  sudo rmmod ${DRV}
+  sudo rmmod ${DRV} 2>/dev/null
   sudo dmesg -C
-  sudo insmod ${DRV}.ko
+  sudo insmod ${DRV}.ko || exit 1
   sudo dmesg
   journalctl -f -k
 }

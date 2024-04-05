@@ -6,7 +6,7 @@
  * (Here, the 55111... portion begins after 18 digits! If the register holding
  * the result is smaller, it gets truncated. With something like a missile
  * tracking system, this truncation can be quite literally fatal! ...As was the
- * case with the Patriot missile killer in the Gulf War in 1991).
+ * case with the Patriot Scud-missile-killer in the Gulf War in 1991, when it missed).
  */
 #include <stdio.h>
 double res = 0;

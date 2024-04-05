@@ -40,10 +40,10 @@ ALL :=  prod prod_2part
 # Of course, if you have >1 C program to build, you must add it manually.
 # Also, it's recommended to keep one Makefile per program in separate directories.
 ###
-FNAME_C := test
+FNAME_C := test2
 #--- USER CHECK: manually add params as required
 # Populate any required cmdline arguments to the process here:
-CMDLINE_ARGS=
+CMDLINE_ARGS="1"
 
 
 ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov
@@ -212,6 +212,7 @@ else
 	@echo "--- dynamic analysis with Valgrind memcheck ---"
 	@echo
 #--- USER CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
+	@if test -z "${CMDLINE_ARGS}"; then echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${FNAME_C}_gcov ? @@@\n"; fi
 	${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg ${CMDLINE_ARGS}
 endif
 
@@ -236,7 +237,7 @@ san:
 #--- USER CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
 	./${FNAME_C}_dbg_msan ${CMDLINE_ARGS}
 
-# Testing: line coverage with gcov(1), lcov(1)
+#----- Testing: line coverage with gcov(1), lcov(1)
 # ref: https://backstreetcoder.com/code-coverage-using-gcov-lcov-in-linux/
 covg:
 	@echo
@@ -262,10 +263,11 @@ endif
 #--- Build for coverage testing; this generates the binary executable named
 # ${FNAME_C}_covg and the .gcno ('notes') files as well
 	make clean
-	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov ${LINK}
 	@echo "___"
+	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov ${LINK}
+	@if test -z "${CMDLINE_ARGS}"; then echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${FNAME_C}_gcov ? @@@\n"; fi
 
-	@echo "--------------Running via our wrapper ${LCOV_SCRIPT}----------"
+	@echo "-------------- Running via our wrapper ${LCOV_SCRIPT} --------------"
 	${LCOV_SCRIPT} ${FNAME_C}_gcov ${CMDLINE_ARGS}
 # exit unconditionally
 %:

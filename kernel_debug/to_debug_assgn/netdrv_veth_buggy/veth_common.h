@@ -25,6 +25,8 @@
 #include <linux/debugfs.h>
 #include "convenient.h"
 
+#define DEBUG // want 'debug' mode On
+
 #define PORTNUM     54295 // the port users will be connecting to
 #define INTF_NAME  "veth"
 
@@ -61,12 +63,18 @@
 	skb->end, \
 	(skb->end-skb->tail)   /* tailroom len */ \
 	);    \
-	if (skb) \
+	if (skb) { \
+		pr_info("FREEING !!!\n"); \
 	  dev_kfree_skb(skb); \
-	pr_debug("////////////////////////\n");    \
-	/* print_hex_dump_bytes() dumps at KERN_DEBUG if DEBUG is defined  */ \
+	} \
+	pr_debug("_______============_____\n");    \
+	pr_debug("skb ptr: %px\n" \
+	" len=%u truesize=%u users=%d\n", \
+		skb, skb->len, skb->truesize, refcount_read(&skb->users));\
 	print_hex_dump_bytes(" ", DUMP_PREFIX_OFFSET, skb->head, skb->end); \
 } while (0)
+//	pr_debug("////////////////////////\n");
+	/* print_hex_dump_bytes() dumps at KERN_DEBUG if DEBUG is defined  */
 	/* Buggy
 	  print_hex_dump_bytes(" ", DUMP_PREFIX_OFFSET, skb->head, skb->tail - skb->end); 
             abv: UAF !

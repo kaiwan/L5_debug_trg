@@ -3,7 +3,8 @@ name=$(basename $0)
 
 usage()
 {
-echo "Usage: ${name} [kernel-config-file]"
+echo "Usage: ${name} [kernel-config-file]
+Checks given kernel config for required KDUMP configs"
 }
 
 [[ $1 = "-h" ]] && {

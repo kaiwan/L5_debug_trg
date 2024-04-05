@@ -39,7 +39,7 @@ FNAME_C = 1_buggy
 ALL_NM :=  ${FNAME_C}_rel ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov
 
 CC=${CROSS_COMPILE}gcc
-CL=${CROSS_COMPILE}clang
+CL=clang
 STRIP=${CROSS_COMPILE}strip
 
 PROD_OPTLEVEL=-O2

@@ -18,6 +18,9 @@ ip a | grep -w ${SENDER_INTF} > /dev/null || die "Specified sender n/w interface
 ip=$(ip a|grep  -w "${SENDER_INTF}" |grep "^ *inet "|awk '{print $2}'|sed 's/...$//')
 [[ -z "${ip}" ]] && die "${name}: couldn't fetch sender's IP addr"
 
+# Raise printk --console-level to 8 (all msgs goto console device)
+sudo dmesg -n 8
+
 # Install the netconsole LKM
 # netconsole module parameter format:
 #  netconsole=[+][src-port]@[src-ip]/[<dev>],[tgt-port]@<tgt-ip>/[tgt-macaddr]

@@ -1,4 +1,16 @@
-# linux_debug_L5
+# L5_debug_trg
+
+======================================== <br>
+**NOTE NOTE NOTE** <br>
+======================================== <br>
+This repository is deprecated in favor of these repos:
+
+- [Linux User Debugging training](https://github.com/kaiwan/L5_user_debug/)
+- [Linux Kernel Debugging training](https://github.com/kaiwan/L5_kernel_debug)
+
+======================================== <br>
+
+
 Source code, small utils : for the kaiwanTECH 'Linux Debugging Techniques' corporate
 training sessions.
 
